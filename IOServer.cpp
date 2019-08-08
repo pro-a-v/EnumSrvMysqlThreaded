@@ -122,6 +122,7 @@ void IOServer::RequestConsumerWorker()
                     mccmnc mcc_data = dbd.get(phone,  DefaultDataCache, DaughterDataCache);
                     boost::system::error_code ignored_ec;
                     this->socket_.send_to(boost::asio::buffer(NS.Answer(mcc_data.mcc,mcc_data.mnc)), req->sender_endpoint_, 0, ignored_ec);
+                    continue;
                     }
                 } catch (...) {
                     ; // need just log an error
