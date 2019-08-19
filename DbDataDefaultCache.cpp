@@ -2,6 +2,8 @@
 
 DbDataDefaultCache::DbDataDefaultCache(boost::asio::io_service *io_service_, ConnectionPool_T pool_): io_service(io_service_), pool(pool_)
 {
+    working_ptr.store(&First);
+
     UpdateDefaultRangeCache();
     condition_working = true;
     boost::thread *UpdaterThread = new boost::thread(   boost::bind(&DbDataDefaultCache::UpdateDefaultRangeCacheWorker, this) , nullptr );
@@ -15,56 +17,13 @@ DbDataDefaultCache::~DbDataDefaultCache()
 
 mccmnc DbDataDefaultCache::GetDefaultRangeCache(std::string phone)
 {
-    std::lock_guard<std::mutex> guard(defaultDataMutex);
-    std::string prefix;
-    mccmnc tmp;
-    switch(phone.length())
-    {
-        case 6: prefix = phone.substr(0,1); break;
-        case 7: prefix = phone.substr(0,1); break;
-        case 8: prefix = phone.substr(0,1); break;
-        case 9: prefix = phone.substr(0,1); break;
-        case 10: prefix = phone.substr(0,1); break;
-        case 11: prefix = phone.substr(0,2); break;
-        case 12: prefix = phone.substr(0,3); break;
-        case 13: prefix = phone.substr(0,3); break;
-        case 14: prefix = phone.substr(0,3); break;
-        case 15: prefix = phone.substr(0,4); break;
-        case 16: prefix = phone.substr(0,4); break;
-        default: prefix = phone.substr(0,1); break;
-    }
-
-    std::string table_template = std::string("l") + std::to_string(phone.length()) + std::string("p") + prefix;
-    std::string table_default = table_template + std::string("default");
-
-    try {
-        //std::cout << phone << " - " << table_default << std::endl;
-        defaultDataRecords = defaultDataContainer[table_default];
-
-
-        uint64_t int_phone = std::stoull(phone);
-
-        for (auto defaultDataRecord : defaultDataRecords)
-        {
-
-            if (defaultDataRecord.db_from <= int_phone )
-            if (defaultDataRecord.db_to >= int_phone )
-            {
-                tmp.mcc = defaultDataRecord.db_mcc;
-                tmp.mnc = defaultDataRecord.db_mnc;
-
-            }
-        }
-
-    } catch (...) {;}
-
-
-
-    return tmp;
+    DefaultDataContainer *working_container = working_ptr;
+    return working_container->get(phone);
 }
 
 void DbDataDefaultCache::GetDefaultTables()
 {
+    DbDefaultTables.clear();
     Connection_T con = ConnectionPool_getConnection(pool);
     TRY
         // looking dafault data
@@ -72,8 +31,6 @@ void DbDataDefaultCache::GetDefaultTables()
 
         ResultSet_T r_data = Connection_executeQuery(con, "%s", sql_default.c_str());
 
-        int rows = Connection_getFetchSize(con);
-        if ( rows > 0)     DbDefaultTables.clear();
         while (ResultSet_next(r_data))
         {
              DbDefaultTables.push_back(  ResultSet_getString(r_data, 1) );
@@ -81,7 +38,6 @@ void DbDataDefaultCache::GetDefaultTables()
 
     CATCH(SQLException)
         std::cout << "Failed to SHOW TABLES like '%default', old data used " <<  Exception_frame.message;
-        //throw std::runtime_error("SHOW TABLES like '%default' ");
     END_TRY;
     Connection_close(con);
 
@@ -89,6 +45,7 @@ void DbDataDefaultCache::GetDefaultTables()
 
 std::vector<defaultDataRecord> DbDataDefaultCache::GetDefaultTableRecords(std::string tablename)
 {
+
     std::vector<defaultDataRecord> defaultDataRecords;
     std::string sql_default;
     Connection_T con = ConnectionPool_getConnection(pool);
@@ -110,7 +67,7 @@ std::vector<defaultDataRecord> DbDataDefaultCache::GetDefaultTableRecords(std::s
 
     CATCH(SQLException)
         std::cout << "Failed " << sql_default <<  Exception_frame.message;
-        //throw std::runtime_error(sql_default);
+        throw std::runtime_error(Exception_frame.message);
     END_TRY;
     Connection_close(con);
 
@@ -124,16 +81,33 @@ void DbDataDefaultCache::UpdateDefaultRangeCache()
 {
     GetDefaultTables();
 
-    std::lock_guard<std::mutex> guard(defaultDataMutex);
 
+    if (DbDefaultTables.size() > 0 )   // Sucseed Get Tables from DB
+    try{
 
-    for(auto table : DbDefaultTables)
-    {
-            defaultDataRecords = GetDefaultTableRecords(table);
-            defaultDataContainer[table].clear();
-            defaultDataContainer[table].swap(defaultDataRecords);
+        for(auto table : DbDefaultTables)
+        {
+                defaultDataRecords = GetDefaultTableRecords(table);
+
+                if ( working_ptr == &First)
+                    Second.update(table, defaultDataRecords);
+                else
+                    First.update(table, defaultDataRecords);
+        }
+        // Only without any db error we come here and switch cache
+        if ( working_ptr == &First)
+            working_ptr.store(&Second);
+        else
+            working_ptr.store(&First);
+        std::cout << "DB cache for default update done" << std::endl;
     }
-    std::cout << "DB cache for default update done" << std::endl;
+    catch(...)
+    {
+        std::cout << "DB cache for default update finished with errors ... leaved previous cache" << std::endl;
+    }
+
+
+
 }
 
 void DbDataDefaultCache::UpdateDefaultRangeCacheWorker()

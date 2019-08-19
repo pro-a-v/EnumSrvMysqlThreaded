@@ -2,6 +2,7 @@
 #define DBDATACLIENTDENYLIST_HPP
 
 #include "mccmnc.hpp"
+#include "ClientsDenyListContainer.hpp"
 
 #include <boost/asio.hpp>
 #include <boost/asio/signal_set.hpp>
@@ -11,7 +12,6 @@
 #include <cstring>
 #include <stdexcept>
 #include <vector>
-#include <mutex>
 #include <map>
 #include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
@@ -25,24 +25,18 @@ class DbDataClientsDenyList
 public:
     DbDataClientsDenyList(boost::asio::io_service *io_service, ConnectionPool_T pool_);
     ~DbDataClientsDenyList();
-
     bool isAlowed(std::string ip, std::string phone);
+
 private:
-
     ConnectionPool_T pool;
-
+    void GetDBClientsDenyList();
     void UpdateClientsDenyList();
     void UpdateClientsDenyListWorker();
-
-    std::mutex ClientsDenyListDataMutex;
     bool condition_working;
-
-    std::map<std::string, std::string> ClientsDenyListDataContainer;
-    std::map<std::string, std::string>::iterator ClientsDenyListDataContainerIterator;
-
-
+    ClientsDenyListContainer First, Second;
+    std::atomic<ClientsDenyListContainer*> working_ptr;
     // ----------------------
-
+    std::map<std::string, std::string> ClientsDenyListData;
     boost::asio::io_service *io_service;
 
 };

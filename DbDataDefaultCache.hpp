@@ -3,9 +3,11 @@
 
 #include "default_range_cache_data.hpp"
 #include "mccmnc.hpp"
+#include "DefaultDataContainer.hpp"
 
 #include <boost/asio.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <atomic>
 
 #include <iostream>
 #include <string.h>
@@ -39,11 +41,15 @@ private:
     void UpdateDefaultCache();
     void UpdateDefaultRangeCache();
     void UpdateDefaultRangeCacheWorker();
-    std::mutex defaultDataMutex;
-    bool condition_working;
-    std::vector<defaultDataRecord> defaultDataRecords;
-    std::map<std::string, std::vector<defaultDataRecord>> defaultDataContainer;
 
+    bool condition_working;
+
+
+    std::vector<defaultDataRecord> defaultDataRecords;
+
+
+    DefaultDataContainer First, Second;
+    std::atomic<DefaultDataContainer*> working_ptr;
 
     // ----------------------
 

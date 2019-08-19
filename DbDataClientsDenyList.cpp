@@ -15,60 +15,23 @@ DbDataClientsDenyList::~DbDataClientsDenyList()
 
 bool DbDataClientsDenyList::isAlowed(std::string ip, std::string phone)
 {
-    std::lock_guard<std::mutex> guard(ClientsDenyListDataMutex);
-    if (ClientsDenyListDataContainer.find( ip ) != ClientsDenyListDataContainer.end())
-    {
-        // We have such ip - check for deny range
-        std::string ranges = ClientsDenyListDataContainer[ip];
-
-        if ( ranges == std::string("") ) // ALL allowed
-                return true;
-
-        std::vector <std::string> raw_string_parts;
-        //split by coma
-        split(raw_string_parts, ranges, boost::is_any_of(","));
-        // trim for spaces
-        std::for_each(raw_string_parts.begin(), raw_string_parts.end(), boost::bind(&boost::trim<std::string>, _1, std::locale() ));
-
-        // Check each range
-        for(std::vector<std::string>::iterator it = raw_string_parts.begin(); it != raw_string_parts.end(); ++it) {
-            std::string range = (*it);
-            if (range == phone.substr(0, range.length()) )
-                return false;
-        }
-
-    }
-    else {
-        std::cout << "Couldn't find " << ip << " in clientsDenyList table";
-        return false;
-    }
-
-
-    return true;
+    ClientsDenyListContainer *working_container = working_ptr;
+    return working_container->isAlowed(ip, phone);
 }
 
-
-
-void DbDataClientsDenyList::UpdateClientsDenyList()
+void DbDataClientsDenyList::GetDBClientsDenyList()
 {
+    ClientsDenyListData.clear();
 
     std::string sql_default;
     Connection_T con = ConnectionPool_getConnection(pool);
     TRY
         // looking dafault data
         sql_default = "select `IP`, `CountryPrefixDeny` from clientsDenyList";
-
         ResultSet_T r_data = Connection_executeQuery(con, "%s", sql_default.c_str());
-
-        std::lock_guard<std::mutex> guard(ClientsDenyListDataMutex);
-
-        int rows = Connection_getFetchSize(con);
-        if ( rows > 0)     ClientsDenyListDataContainer.clear();
-
-
         while (ResultSet_next(r_data))
         {
-             ClientsDenyListDataContainer.insert(std::make_pair( ResultSet_getStringByName(r_data, "IP") , ResultSet_getStringByName(r_data, "CountryPrefixDeny")));
+             ClientsDenyListData.insert(std::make_pair( ResultSet_getStringByName(r_data, "IP") , ResultSet_getStringByName(r_data, "CountryPrefixDeny")));
         }
 
     CATCH(SQLException)
@@ -77,7 +40,24 @@ void DbDataClientsDenyList::UpdateClientsDenyList()
     END_TRY;
     Connection_close(con);
 
+}
 
+void DbDataClientsDenyList::UpdateClientsDenyList()
+{
+    GetDBClientsDenyList();
+    if (ClientsDenyListData.size() > 0) // No Errors when get DB Data
+    {
+        if ( working_ptr == &First)
+        {
+            Second.update(ClientsDenyListData);
+            working_ptr.store(&Second);
+        }
+        else
+        {
+            First.update(ClientsDenyListData);
+            working_ptr.store(&First);
+        }
+    }
 }
 
 
