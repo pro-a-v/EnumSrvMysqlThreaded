@@ -27,7 +27,7 @@ mccmnc DefaultDataContainer::get(std::string phone)
 
     std::string table_name = std::string("l") + std::to_string(phone.length()) + std::string("p") + prefix + std::string("default");
 
-
+    if ( defaultDataContainer.find(table_name) != defaultDataContainer.end() )
     try {
         std::vector<defaultDataRecord> tableDataRecords = defaultDataContainer[table_name];
 
@@ -56,4 +56,9 @@ void DefaultDataContainer::update(std::string table, std::vector<defaultDataReco
 {
     defaultDataContainer[table].clear();
     defaultDataContainer[table].swap(data);
+}
+
+void DefaultDataContainer::clean()
+{
+    defaultDataContainer.clear();
 }

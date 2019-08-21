@@ -64,6 +64,7 @@ public:
     std::string Answer(uint16_t mcc,uint8_t mnc);
     std::string Answer(std::string mcc,std::string mnc);
     std::string AnswerError();
+	std::string AnswerAccessDeny();
 
 
 

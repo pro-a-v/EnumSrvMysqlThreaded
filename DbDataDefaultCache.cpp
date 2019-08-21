@@ -85,6 +85,13 @@ void DbDataDefaultCache::UpdateDefaultRangeCache()
     if (DbDefaultTables.size() > 0 )   // Sucseed Get Tables from DB
     try{
 
+        // Clean Second buffer
+        if ( working_ptr == &First)
+            Second.clean();
+        else
+            First.clean();
+
+        // Fill second buffer of new data
         for(auto table : DbDefaultTables)
         {
                 defaultDataRecords = GetDefaultTableRecords(table);
@@ -94,11 +101,13 @@ void DbDataDefaultCache::UpdateDefaultRangeCache()
                 else
                     First.update(table, defaultDataRecords);
         }
+
         // Only without any db error we come here and switch cache
         if ( working_ptr == &First)
             working_ptr.store(&Second);
         else
             working_ptr.store(&First);
+
         std::cout << "DB cache for default update done" << std::endl;
     }
     catch(...)

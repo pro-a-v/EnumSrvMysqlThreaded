@@ -3,10 +3,12 @@
 
 #include "daughter_range_cache_data.hpp"
 #include "mccmnc.hpp"
+#include "DaugterCacheContainer.hpp"
 
 #include <boost/asio.hpp>
 #include <boost/asio/signal_set.hpp>
 
+#include <atomic>
 #include <iostream>
 #include <string.h>
 #include <cstring>
@@ -33,18 +35,21 @@ private:
 
     // Default Ranges Cache
     void GetDaughterTables();
-    std::vector<daughterDataRecord> *GetDaughterTableRecords(std::string tablename);
     std::vector<std::string> DbDaughterTables;
+
+    void GetDaughterTableRecords(std::string tablename);
+    std::vector<daughterDataRecord> daughterDataRecords;
+
 
     void UpdateDaughterCache();
     void UpdateDaughterRangeCache();
     void UpdateDaughterRangeCacheWorker();
-    std::mutex daughterDataMutex;
+
     bool condition_working;
-    std::vector<daughterDataRecord> *daughterDataRecords;
-    std::map<std::string, void*> daughterDataContainer;
-    std::map<std::string, void*>::iterator daughterDataContainerIterator;
-    std::vector<daughterDataRecord>::iterator daughterDataRecordsIterator;
+
+
+    DaugterCacheContainer First, Second;
+    std::atomic<DaugterCacheContainer*> working_ptr;
 
     // ----------------------
 

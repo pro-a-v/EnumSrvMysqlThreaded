@@ -18,6 +18,7 @@ public:
     DefaultDataContainer();
     mccmnc get(std::string phone);
     void update(std::string table, std::vector<defaultDataRecord> data);
+    void clean();
 
 private:
     std::map<std::string, std::vector<defaultDataRecord>> defaultDataContainer;

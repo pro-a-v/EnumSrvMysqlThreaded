@@ -25,6 +25,7 @@ set(SOURCE_FILES
         DbDataClientsDenyList.cpp
         DefaultDataContainer.cpp
         ClientsDenyListContainer.cpp
+        DaugterCacheContainer.cpp
      )
 
 

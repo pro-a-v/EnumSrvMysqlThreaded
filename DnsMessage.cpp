@@ -121,6 +121,56 @@ std::string DnsMessage::AnswerError()
 
 }
 
+std::string DnsMessage::AnswerAccessDeny()
+{
+    std::string msg;
+    char ch;
+
+    try {
+        msg.push_back(header.ID[0]);
+        msg.push_back(header.ID[1]);
+      header.QR = true;
+      if (header.QR) ch = 128; else ch = 0;
+      ch += header.OPCODE << 3;
+      if (header.AA) ch += 4;
+      if (header.TC) ch += 2;
+      if (header.RD) ch++;
+      msg.append(&ch, 1);
+      if (header.RA) ch = 128; else ch = 0;
+      ch += header.Z << 4;
+      header.RCODE = 5; //
+      //      RCODE:0	 DNS Query completed successfully
+      //      RCODE:1	 DNS Query Format Error
+      //      RCODE:2	 Server failed to complete the DNS request
+      //      RCODE:3	 Domain name does not exist.  For help resolving this error, read here.
+      //      RCODE:4	 Function not implemented
+      //      RCODE:5	 The server refused to answer for the query
+      //      RCODE:6	 Name that should not exist, does exist
+      //      RCODE:7	 RRset that should not exist, does exist
+      //      RCODE:8	 Server not authoritative for the zone
+      //      RCODE:9	  Name not in zone
+
+      ch += header.RCODE;
+      msg.append(&ch, 1);
+      msg.append(uint16_buff(0), 2);
+      msg.append(uint16_buff(0), 2);
+      msg.append(uint16_buff(0), 2);
+      msg.append(uint16_buff(0), 2);
+
+      /* write number of written items */
+
+
+    }
+    catch (...)
+    {
+        Error=true;    // only one question is allowed
+        ErrorText = "got Exception while Compile answer ";
+        return "";
+    }
+
+    return msg;
+}
+
 
 std::string DnsMessage::Answer(uint16_t mcc,uint8_t mnc)
 {
@@ -200,7 +250,7 @@ std::string DnsMessage::Answer(uint16_t mcc,uint8_t mnc)
       tmp_data.append(regex);
 
       // add to msg
-      uint16_t tmp_data_size = tmp_data.size();
+      uint16_t tmp_data_size = tmp_data.size() + 1;
       msg.append(uint16_buff(tmp_data_size), 2);
       msg.append(tmp_data);
       msg.push_back(0x00);
@@ -295,7 +345,7 @@ std::string DnsMessage::Answer(std::string mcc,std::string mnc)
       tmp_data.append(regex);
 
       // add to msg
-      uint16_t tmp_data_size = tmp_data.size();
+      uint16_t tmp_data_size = tmp_data.size() + 1;
       msg.append(uint16_buff(tmp_data_size), 2);
       msg.append(tmp_data);
       msg.push_back(0x00);
