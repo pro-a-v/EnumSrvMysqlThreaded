@@ -14,10 +14,11 @@ IOServer::IOServer(boost::asio::io_service& io_service, short port)
     url = URL_new(testURL);
     pool = ConnectionPool_new(url);
     assert(pool);
-    ConnectionPool_setInitialConnections(pool,1);
-    ConnectionPool_setReaper(pool, 30);
+    ConnectionPool_setInitialConnections(pool,4);
+    ConnectionPool_setReaper(pool, 2);
+    ConnectionPool_setMaxConnections(pool,1000);
     ConnectionPool_start(pool);
-    ConnectionPool_setMaxConnections(pool,64);
+
 
 
     // worker threads

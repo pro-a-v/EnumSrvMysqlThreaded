@@ -79,8 +79,11 @@ bool DbData::isPortable()
     // ======================
     // looking portable data
     // ======================
-            Connection_T con = ConnectionPool_getConnection(pool);
+    while (con == nullptr) con = ConnectionPool_getConnection(pool);
+
+
     TRY
+    {
 
         // looking portable data
         std::string sql_data = "select mcc, mnc from enum."+ table_data + std::string(" where phone=") + phone;
@@ -93,12 +96,15 @@ bool DbData::isPortable()
              mcc_data.mnc = ResultSet_getIntByName(r_data, "mnc");
              return true;
         }
-
+    }
     CATCH(SQLException)
+    {
         std::cout << "Phone " << phone << " error isPortable with " <<  Exception_frame.message;
+    }
     END_TRY;
-    Connection_close(con);
+
     return false;
+
 
 
 

@@ -24,8 +24,12 @@ void DbDataDaughterCache::GetDaughterTables()
 {
     DbDaughterTables.clear();
     std::string sql_default = "SHOW TABLES like '%daughter'";
-    Connection_T con = ConnectionPool_getConnection(pool);
+
+    Connection_T con = nullptr;
+    while (con == nullptr) con = ConnectionPool_getConnection(pool);
+
     TRY
+    {
         // looking dafault data
         ResultSet_T r_data = Connection_executeQuery(con, "%s", sql_default.c_str());
         while (ResultSet_next(r_data))
@@ -33,11 +37,18 @@ void DbDataDaughterCache::GetDaughterTables()
              DbDaughterTables.push_back(  ResultSet_getString(r_data, 1) );
         }
 
+    }
     CATCH(SQLException)
+    {
         std::cout << "Failed: " << sql_default <<  Exception_frame.message;
         // throw std::runtime_error(Exception_frame.message);
+    }
+    FINALLY
+    {
+        Connection_close(con);
+    }
     END_TRY;
-    Connection_close(con);
+
 
 }
 
@@ -48,10 +59,9 @@ void DbDataDaughterCache::GetDaughterTableRecords(std::string tablename)
     Connection_T con = ConnectionPool_getConnection(pool);
 
     TRY
+    {
         // looking dafault data
-
         ResultSet_T r_data = Connection_executeQuery(con, "%s", sql_default.c_str());
-
         while (ResultSet_next(r_data))
         {
              daughterDataRecord tmp_data;
@@ -62,12 +72,18 @@ void DbDataDaughterCache::GetDaughterTableRecords(std::string tablename)
              tmp_data.db_parent_mnc = ResultSet_getIntByName(r_data, "parent_mnc");
              daughterDataRecords.push_back(tmp_data);
         }
-
+    }
     CATCH(SQLException)
-        std::cout << "Failed: " << Exception_frame.message;
+    {
+        std::cout << "Failed: " << sql_default <<  Exception_frame.message;
         throw std::runtime_error(Exception_frame.message);
+    }
+    FINALLY
+    {
+        Connection_close(con);
+    }
     END_TRY;
-    Connection_close(con);
+
 
 
 }

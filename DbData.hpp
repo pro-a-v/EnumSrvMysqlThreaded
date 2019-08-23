@@ -35,6 +35,7 @@ public:
 private:
 
     ConnectionPool_T pool;
+    Connection_T con = nullptr;
 
     std::string phone;
     std::string prefix;

@@ -24,8 +24,12 @@ mccmnc DbDataDefaultCache::GetDefaultRangeCache(std::string phone)
 void DbDataDefaultCache::GetDefaultTables()
 {
     DbDefaultTables.clear();
-    Connection_T con = ConnectionPool_getConnection(pool);
+
+    Connection_T con = nullptr;
+    while (con == nullptr) con = ConnectionPool_getConnection(pool);
+
     TRY
+    {
         // looking dafault data
         std::string sql_default = "SHOW TABLES like '%default'";
 
@@ -36,10 +40,17 @@ void DbDataDefaultCache::GetDefaultTables()
              DbDefaultTables.push_back(  ResultSet_getString(r_data, 1) );
         }
 
+    }
     CATCH(SQLException)
+    {
         std::cout << "Failed to SHOW TABLES like '%default', old data used " <<  Exception_frame.message;
+    }
+    FINALLY
+    {
+        Connection_close(con);
+    }
     END_TRY;
-    Connection_close(con);
+
 
 }
 
@@ -48,8 +59,12 @@ std::vector<defaultDataRecord> DbDataDefaultCache::GetDefaultTableRecords(std::s
 
     std::vector<defaultDataRecord> defaultDataRecords;
     std::string sql_default;
-    Connection_T con = ConnectionPool_getConnection(pool);
+
+    Connection_T con = nullptr;
+    while (con == nullptr) con = ConnectionPool_getConnection(pool);
+
     TRY
+    {
         // looking dafault data
         sql_default = "select `from`, `to`, `mcc`, `mnc` from " + tablename;
 
@@ -64,12 +79,17 @@ std::vector<defaultDataRecord> DbDataDefaultCache::GetDefaultTableRecords(std::s
              tmp_data.db_mnc = ResultSet_getIntByName(r_data, "mnc");
              defaultDataRecords.push_back(tmp_data);
         }
-
+    }
     CATCH(SQLException)
+    {
         std::cout << "Failed " << sql_default <<  Exception_frame.message;
         throw std::runtime_error(Exception_frame.message);
+    }
+    FINALLY
+    {
+        Connection_close(con);
+    }
     END_TRY;
-    Connection_close(con);
 
     return defaultDataRecords;
 
