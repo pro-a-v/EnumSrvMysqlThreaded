@@ -51,7 +51,7 @@ mccmnc DbData::get(std::string phone_, DbDataDefaultCache *DbDataDefaultCache, D
 
     if (isPortable())
     {
-        GetParent();
+        mcc_data = DbDataDaughterCache->GetDaughterRangeCache(phone, mcc_data);
     }
     else
     {
@@ -105,28 +105,4 @@ bool DbData::isPortable()
 }
 
 
-void DbData::GetParent()
-{
-    std::string sql_daughter = "select parent_mcc, parent_mnc from enum."+ table_daughter + std::string(" where `mnc`=") + std::to_string(mcc_data.mnc) + std::string(" and `mcc`=") + std::to_string(mcc_data.mcc);
-    Connection_T con = ConnectionPool_getConnection(pool);
-    TRY
-        // looking portable data
-        std::string sql_default = "select mcc, mnc from enum."+ table_default + std::string(" where `from`<=") + phone + std::string(" and `to`>=") + phone;
-
-        ResultSet_T r_data = Connection_executeQuery(con, sql_daughter.c_str());
-
-        if (ResultSet_next(r_data))
-        {
-            mcc_data.mcc = ResultSet_getIntByName(r_data, "parent_mcc");
-            mcc_data.mnc = ResultSet_getIntByName(r_data, "parent_mnc");
-        }
-
-    CATCH(SQLException)
-        std::cout << "Phone " << phone << " error GetParent with " <<  Exception_frame.message;
-    END_TRY;
-    Connection_close(con);
-
-
-
-}
 
