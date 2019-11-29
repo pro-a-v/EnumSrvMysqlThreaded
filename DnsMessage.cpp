@@ -453,31 +453,35 @@ std::string DnsMessage::NumberFromStr(char *data, int len)
              ErrorText = "wrong telephone number: " + std::string(data,len);
              return "";
          }
-
-
-         for(int i=0; i<=length;i++)   // data contain Class and Type
+         else
          {
-             char ch;
-             ch = data[i];
 
-             if (simbols_count==2)
-             {
-                 std::reverse(value.begin(),value.end());
-                 return value;
-             }
 
-             if ( (0x30<=ch) && (ch<=0x39) )
-              {
-                 simbols_count=0;
-                 value.append(data + i,1);
-             }
-             else
+             for(int i=0; i<=length;i++)   // data contain Class and Type
              {
-                simbols_count++;
+                 char ch;
+                 ch = data[i];
+
+                 if (simbols_count==2)
+                 {
+                     std::reverse(value.begin(),value.end());
+                     return value;
+                 }
+
+                 if ( (0x30<=ch) && (ch<=0x39) )
+                  {
+                     simbols_count=0;
+                     value.append(data + i,1);
+                 }
+                 else
+                 {
+                    simbols_count++;
+                 }
              }
+             std::reverse(value.begin(),value.end());
          }
 
-        std::reverse(value.begin(),value.end());
+
     }
     catch(const std::exception& ex)
     {
