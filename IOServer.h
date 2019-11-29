@@ -38,7 +38,7 @@ using boost::asio::ip::udp;
 #include <fstream>
 
 #include <iostream>
-static boost::mutex s_iomutex;
+//static boost::mutex s_iomutex;
 
 template <typename T> class BlockingQueue {
   public:
@@ -63,6 +63,11 @@ template <typename T> class BlockingQueue {
         return elem;
     }
 
+    T size() {
+        boost::unique_lock<boost::mutex> lock(_mutex);
+        return _buffer.size();
+    }
+
   private:
     boost::mutex _mutex;
     boost::condition_variable _push_event, _pop_event;
@@ -85,15 +90,20 @@ private:
   enum { max_length = UDP_MSG_SIZE };
   char data_[UDP_MSG_SIZE];
 
+
   std::string currentDateTime();
   //boost::lockfree::queue<Request *, boost::lockfree::fixed_sized<true> , boost::lockfree::capacity<4096>> income_queue;
   //boost::lockfree::queue<Request *, boost::lockfree::capacity<1000>> income_queue;
 
   BlockingQueue<Request *> income_queue;
+  BlockingQueue<Request *> hlr_queue;
 
   boost::atomic<bool> done;
 
   void RequestConsumerWorker();
+  void SendErrorAnswer(DnsMessage *NS ,Request *req);
+  void SendAccessDenyAnswer(DnsMessage *NS ,Request *req);
+  bool ProcessDBRequest(DbData &dbd, DnsMessage *NS ,Request *req);
 
   const char *testURL = "mysql://localhost:3306/enum?user=enumrw&password=Qazxsw12345679]";
   URL_T url;

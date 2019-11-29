@@ -15,7 +15,7 @@ IOServer::IOServer(boost::asio::io_service& io_service, short port)
     pool = ConnectionPool_new(url);
     assert(pool);
     ConnectionPool_setInitialConnections(pool,4);
-    ConnectionPool_setReaper(pool, 2);
+    ConnectionPool_setReaper(pool, 60);
     ConnectionPool_setMaxConnections(pool,1000);
     ConnectionPool_start(pool);
 
@@ -107,42 +107,68 @@ void IOServer::RequestConsumerWorker()
             // обрабатываем запрос
 
             DnsMessage NS( const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
-            // формируем ответ
-            if (NS.Error==true)
+
+            if (NS.Error)
             {
-                boost::system::error_code ignored_ec;
-                this->socket_.send_to(boost::asio::buffer(NS.AnswerError()), req->sender_endpoint_, 0, ignored_ec);
+                SendErrorAnswer(&NS , req);
+                delete req;
+                continue;
+            }
+
+
+            // If NOT Allowed send AccessDeny and continue with new req
+            if ( ! ClientsDenyList->isAlowed(req->sender_endpoint_.address().to_v4().to_string(), NS.GetRequestedNumber()) )
+            {
+                SendAccessDenyAnswer(&NS , req);
+                delete req;
+                continue;
+            }
+
+            if (ProcessDBRequest(dbd, &NS, req))
+            {
+                delete req;
+                continue;
             }
             else
             {
-                std::string phone = NS.GetRequestedNumber();
-                try {
-
-                    if ( ClientsDenyList->isAlowed(req->sender_endpoint_.address().to_v4().to_string(),phone) )
-                    {
-                    mccmnc mcc_data = dbd.get(phone,  DefaultDataCache, DaughterDataCache);
-                    boost::system::error_code ignored_ec;
-                    this->socket_.send_to(boost::asio::buffer(NS.Answer(mcc_data.mcc,mcc_data.mnc)), req->sender_endpoint_, 0, ignored_ec);
-                    continue;
-                    } else {
-						boost::system::error_code ignored_ec;
-						this->socket_.send_to(boost::asio::buffer(NS.AnswerAccessDeny()), req->sender_endpoint_, 0, ignored_ec);
-						continue;
-					}
-                } catch (...) {
-                    ; // need just log an error
-                }
                 // error answer
-                boost::system::error_code ignored_ec;
-                this->socket_.send_to(boost::asio::buffer(NS.AnswerError()), req->sender_endpoint_, 0, ignored_ec);
-
+                SendErrorAnswer(&NS , req);
+                delete req;
             }
-        delete req;
+
+
+
+
         }
 
-
     }
-
 }
 
+void IOServer::SendErrorAnswer(DnsMessage *NS ,Request *req)
+{
+    boost::system::error_code ignored_ec;
+    this->socket_.send_to(boost::asio::buffer(NS->AnswerError()), req->sender_endpoint_, 0, ignored_ec);
+}
 
+void IOServer::SendAccessDenyAnswer(DnsMessage *NS ,Request *req)
+{
+    boost::system::error_code ignored_ec;
+    this->socket_.send_to(boost::asio::buffer(NS->AnswerAccessDeny()), req->sender_endpoint_, 0, ignored_ec);
+}
+
+bool IOServer::ProcessDBRequest(DbData &dbd, DnsMessage *NS ,Request *req)
+{
+    try
+    {
+            mccmnc mcc_data = dbd.get(NS->GetRequestedNumber(),  DefaultDataCache, DaughterDataCache);
+            boost::system::error_code ignored_ec;
+            this->socket_.send_to(boost::asio::buffer(NS->Answer(mcc_data.mcc,mcc_data.mnc)), req->sender_endpoint_, 0, ignored_ec);
+            return true;
+    }
+    catch (...)
+    {
+         // need just log an error
+    }
+
+    return false;
+}
