@@ -32,4 +32,4 @@ set(SOURCE_FILES
 
 add_executable(EnumSrvMysqlThreaded ${SOURCE_FILES})
 #target_link_libraries(EnumSrvCurlAPI ${Boost_LIBRARIES} ${OpenSSL_LIBRARIES} ${CPPNETLIB_LIBRARIES} pthread m dl)
-target_link_libraries(EnumSrvMysqlThreaded ${Boost_LIBRARIES} ${MYSQL_LIBS} z zdb boost_thread pthread m dl)
+target_link_libraries(EnumSrvMysqlThreaded ${Boost_LIBRARIES} ${MYSQL_LIBS} z zdb boost_thread pthread m dl g3logger)
