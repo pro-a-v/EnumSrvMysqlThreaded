@@ -451,7 +451,7 @@ std::string DnsMessage::NumberFromStr(char *data, int len)
          {
              Error=true;    // only one question is allowed
              ErrorText = "wrong telephone number: " + std::string(data,len);
-             return 0;
+             return "";
          }
 
 
@@ -481,7 +481,7 @@ std::string DnsMessage::NumberFromStr(char *data, int len)
     }
     catch(const std::exception& ex)
     {
-        LOG(WARNING) << "Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "DnsMessage::NumberFromStr: Error occurred: " << ex.what() << data << std::endl;
     }
 
 
