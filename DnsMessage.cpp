@@ -435,6 +435,14 @@ std::string DnsMessage::NumberFromStr(char *data, int len)
 {
     std::string value;
     try {
+
+        if (data == NULL)
+        {
+            Error=true;    // only one question is allowed
+            ErrorText = "wrong telephone number - no number ";
+            return "";
+        }
+
         // RFC 4034  The RDATA section of the NSEC RR above would be encoded as:
          int length = 24;
          char *pos = strchr(data,0x65); //  e164 serach for 'e'
@@ -443,6 +451,7 @@ std::string DnsMessage::NumberFromStr(char *data, int len)
            length = pos-data-1;
          }
 
+
          int simbols_count = 0;
 
 
@@ -450,7 +459,7 @@ std::string DnsMessage::NumberFromStr(char *data, int len)
          if (len<length)
          {
              Error=true;    // only one question is allowed
-             ErrorText = "wrong telephone number: " + std::string(data,len);
+             ErrorText = "wrong telephone number: " + std::string(data, len);
              return "";
          }
          else
