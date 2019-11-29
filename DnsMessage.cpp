@@ -2,66 +2,79 @@
 
 DnsMessage::DnsMessage(char *data, int len)
 {
-    if (len > 11)  // 12 byte header of DNS record
-    {
-        header.ID[0] = data[0];
-        header.ID[1] = data[1];
-        header.QR = data[2] & 128;
-        header.OPCODE = (data[2] & 120) >> 3; // must be 0 for QUERY
-        header.AA = data[2] & 4;   // Authoritative Answer Flag
-        header.TC = data[2] & 2;   // Truncation Flag
-        header.RD = data[2] & 1;   // Recursion Desired
-        header.RA = data[3] & 128;  // Recursion Avalible
-        header.Z = ( data[3] & 112 ) >> 3;
-        header.RCODE =  data[3] & 15;
-        header.qdc = uint16_value(data + 4);
-        header.adc = uint16_value(data + 6);
-        header.nsc = uint16_value(data + 8);
-        header.arc = uint16_value(data + 10);
-
-        if (header.QR!=false)
+    try {
+        if (len > 11)  // 12 byte header of DNS record
         {
-            Error=true;  // we serve only questions
-            ErrorText = "Income request is not a Query";
-        }
+            header.ID[0] = data[0];
+            header.ID[1] = data[1];
+            header.QR = data[2] & 128;
+            header.OPCODE = (data[2] & 120) >> 3; // must be 0 for QUERY
+            header.AA = data[2] & 4;   // Authoritative Answer Flag
+            header.TC = data[2] & 2;   // Truncation Flag
+            header.RD = data[2] & 1;   // Recursion Desired
+            header.RA = data[3] & 128;  // Recursion Avalible
+            header.Z = ( data[3] & 112 ) >> 3;
+            header.RCODE =  data[3] & 15;
+            header.qdc = uint16_value(data + 4);
+            header.adc = uint16_value(data + 6);
+            header.nsc = uint16_value(data + 8);
+            header.arc = uint16_value(data + 10);
 
-        if (header.qdc>1)
+            if (header.QR!=false)
+            {
+                Error=true;  // we serve only questions
+                ErrorText = "Income request is not a Query";
+            }
+
+            if (header.qdc>1)
+            {
+                Error=true;    // only one question is allowed
+                ErrorText = "Only one question is allowed";
+            }
+
+            // Get Request
+            if (Error == false)
+            {
+                req.size = len - 12;
+                std::memcpy(req.data , data + 12, req.size );
+                req.Type = uint16_value(req.data + req.size - 4 );
+                req.Class = uint16_value(req.data + req.size - 2 );
+            }
+
+            // We serve only NAPTR
+            if (req.Type != 35)
+            {
+                Error=true;    // only one question is allowed
+                ErrorText = "We serve only NAPTR, got " + std::to_string(req.Type);
+            }
+
+            // Class only IN
+            if (req.Class != 1)
+            {
+                Error=true;    // only one question is allowed
+                ErrorText = "We serve only NAPTR with Class = IN, got Class " + std::to_string(req.Class);
+            }
+
+            req.number = NumberFromStr(req.data, req.size);
+            //std::cout << std::string("Number ") << req.number << std::string(" requested") << std::endl;
+        }
+        else
         {
             Error=true;    // only one question is allowed
-            ErrorText = "Only one question is allowed";
+            ErrorText = "Bad lenth ";
         }
 
-        // Get Request
-        if (Error == false)
-        {
-            req.size = len - 12;
-            std::memcpy(req.data , data + 12, req.size );
-            req.Type = uint16_value(req.data + req.size - 4 );
-            req.Class = uint16_value(req.data + req.size - 2 );
-        }
-
-        // We serve only NAPTR
-        if (req.Type != 35)
-        {
-            Error=true;    // only one question is allowed
-            ErrorText = "We serve only NAPTR, got " + std::to_string(req.Type);
-        }
-
-        // Class only IN
-        if (req.Class != 1)
-        {
-            Error=true;    // only one question is allowed
-            ErrorText = "We serve only NAPTR with Class = IN, got Class " + std::to_string(req.Class);
-        }
-
-        req.number = NumberFromStr(req.data, req.size);
-        //std::cout << std::string("Number ") << req.number << std::string(" requested") << std::endl;
     }
-    else
+    catch(const std::exception& ex)
     {
+        std::cerr << "Error occurred: " << ex.what() << std::endl;
+
+    }
+    catch (...) {
         Error=true;    // only one question is allowed
-        ErrorText = "Bad lenth ";
+        ErrorText = "got Exception while Compile answer ";
     }
+
 }
 
 
@@ -108,6 +121,11 @@ std::string DnsMessage::AnswerError()
 
       /* write number of written items */
 
+
+    }
+    catch(const std::exception& ex)
+    {
+        std::cerr << "Error occurred: " << ex.what() << std::endl;
 
     }
     catch (...)
@@ -159,6 +177,11 @@ std::string DnsMessage::AnswerAccessDeny()
 
       /* write number of written items */
 
+
+    }
+    catch(const std::exception& ex)
+    {
+        std::cerr << "Error occurred: " << ex.what() << std::endl;
 
     }
     catch (...)
@@ -256,6 +279,11 @@ std::string DnsMessage::Answer(uint16_t mcc,uint8_t mnc)
       msg.push_back(0x00);
 
     }
+    catch(const std::exception& ex)
+    {
+        std::cerr << "Error occurred: " << ex.what() << std::endl;
+
+    }
     catch (...)
     {
         Error=true;    // only one question is allowed
@@ -351,6 +379,11 @@ std::string DnsMessage::Answer(std::string mcc,std::string mnc)
       msg.push_back(0x00);
 
     }
+    catch(const std::exception& ex)
+    {
+        std::cerr << "Error occurred: " << ex.what() << std::endl;
+
+    }
     catch (...)
     {
         Error=true;    // only one question is allowed
@@ -397,49 +430,57 @@ uint64_t DnsMessage::to_uint64(std::string in) {
 
 std::string DnsMessage::NumberFromStr(char *data, int len)
 {
-   // RFC 4034  The RDATA section of the NSEC RR above would be encoded as:
-    int length = 24;
-    char *pos = strchr(data,0x65); //  e164 serach for 'e'
-    if (pos != NULL)
-    {
-      length = pos-data-1;
-    }
-
-    int simbols_count = 0;
-
-    std::string value = "";
-
-    if (len<length)
-    {
-        Error=true;    // only one question is allowed
-        ErrorText = "wrong telephone number: " + std::string(data,len);
-        return 0;
-    }
-
-
-    for(int i=0; i<=length;i++)   // data contain Class and Type
-    {
-        char ch;
-        ch = data[i];
-
-        if (simbols_count==2)
-        {
-            std::reverse(value.begin(),value.end());
-            return value;
-        }
-
-        if ( (0x30<=ch) && (ch<=0x39) )
+    std::string value;
+    try {
+        // RFC 4034  The RDATA section of the NSEC RR above would be encoded as:
+         int length = 24;
+         char *pos = strchr(data,0x65); //  e164 serach for 'e'
+         if (pos != NULL)
          {
-            simbols_count=0;
-            value.append(data + i,1);
-        }
-        else
-        {
-           simbols_count++;
-        }
+           length = pos-data-1;
+         }
+
+         int simbols_count = 0;
+
+
+
+         if (len<length)
+         {
+             Error=true;    // only one question is allowed
+             ErrorText = "wrong telephone number: " + std::string(data,len);
+             return 0;
+         }
+
+
+         for(int i=0; i<=length;i++)   // data contain Class and Type
+         {
+             char ch;
+             ch = data[i];
+
+             if (simbols_count==2)
+             {
+                 std::reverse(value.begin(),value.end());
+                 return value;
+             }
+
+             if ( (0x30<=ch) && (ch<=0x39) )
+              {
+                 simbols_count=0;
+                 value.append(data + i,1);
+             }
+             else
+             {
+                simbols_count++;
+             }
+         }
+
+        std::reverse(value.begin(),value.end());
+    }
+    catch(const std::exception& ex)
+    {
+        std::cerr << "Error occurred: " << ex.what() << std::endl;
     }
 
-std::reverse(value.begin(),value.end());
 
 return value;
 }

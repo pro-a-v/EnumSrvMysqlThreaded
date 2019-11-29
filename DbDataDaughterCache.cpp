@@ -16,7 +16,7 @@ DbDataDaughterCache::~DbDataDaughterCache()
 
 mccmnc DbDataDaughterCache::GetDaughterRangeCache(std::string phone, mccmnc origin)
 {
-    DaugterCacheContainer *working_container = working_ptr;
+    DaugterCacheContainer *working_container = working_ptr.load();
     return working_container->get(phone, origin);
 }
 

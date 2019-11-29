@@ -17,7 +17,7 @@ DbDataDefaultCache::~DbDataDefaultCache()
 
 mccmnc DbDataDefaultCache::GetDefaultRangeCache(std::string phone)
 {
-    DefaultDataContainer *working_container = working_ptr;
+    DefaultDataContainer *working_container = working_ptr.load();
     return working_container->get(phone);
 }
 
@@ -80,7 +80,7 @@ std::vector<defaultDataRecord> DbDataDefaultCache::GetDefaultTableRecords(std::s
     }
     CATCH(SQLException)
     {
-        std::cout << "Failed " << sql_default <<  Exception_frame.message;
+        std::cout << "DbDataDefaultCache::GetDefaultTableRecords Failed " << sql_default <<  Exception_frame.message;
         throw std::runtime_error(Exception_frame.message);
     }
     FINALLY

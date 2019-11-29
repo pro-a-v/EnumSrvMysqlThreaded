@@ -15,7 +15,7 @@ DbDataClientsDenyList::~DbDataClientsDenyList()
 
 bool DbDataClientsDenyList::isAlowed(std::string ip, std::string phone)
 {
-    ClientsDenyListContainer *working_container = working_ptr;
+    ClientsDenyListContainer *working_container = working_ptr.load();
     return working_container->isAlowed(ip, phone);
 }
 
