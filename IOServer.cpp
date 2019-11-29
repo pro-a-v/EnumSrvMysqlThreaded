@@ -105,15 +105,24 @@ void IOServer::RequestConsumerWorker()
         if (req != nullptr)
         {
             // обрабатываем запрос
-
-            DnsMessage NS( const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
-
-            if (NS.Error)
+            try
             {
-                SendErrorAnswer(&NS , req);
-                delete req;
-                continue;
+                DnsMessage NS( const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
+
+                if (NS.Error)
+                {
+                    SendErrorAnswer(&NS , req);
+                    delete req;
+                    continue;
+                }
+
             }
+            catch(const std::exception& ex)
+            {
+                std::cerr << "ClientsDenyList->isAlowed: Error occurred: " << ex.what() << std::endl;
+            }
+
+
 
 
 
