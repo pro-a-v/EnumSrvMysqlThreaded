@@ -32,16 +32,20 @@ void DbDataDefaultCache::GetDefaultTables()
     {
         // looking dafault data
         ResultSet_T r_data = Connection_executeQuery(con, "%s", "SHOW TABLES like '%default'");
-
+        const char *ret_data;
         while (ResultSet_next(r_data))
         {
-             DbDefaultTables.push_back(  ResultSet_getString(r_data, 1) );
+             ret_data = ResultSet_getString(r_data, 1);
+             if (ret_data != NULL)
+                 DbDefaultTables.push_back( ret_data  );
+             else
+                 std::cout << "Failed to SHOW TABLES like '%default', old data used " << std::endl;
         }
 
     }
     CATCH(SQLException)
     {
-        std::cout << "Failed to SHOW TABLES like '%default', old data used " <<  Exception_frame.message;
+        std::cout << "Failed to SHOW TABLES like '%default', old data used " <<  Exception_frame.message << std::endl;
     }
     FINALLY
     {
@@ -80,7 +84,7 @@ std::vector<defaultDataRecord> DbDataDefaultCache::GetDefaultTableRecords(std::s
     }
     CATCH(SQLException)
     {
-        std::cout << "DbDataDefaultCache::GetDefaultTableRecords Failed " << sql_default <<  Exception_frame.message;
+        std::cout << "DbDataDefaultCache::GetDefaultTableRecords Failed " << sql_default <<  Exception_frame.message << std::endl;
         throw std::runtime_error(Exception_frame.message);
     }
     FINALLY

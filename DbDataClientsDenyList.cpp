@@ -33,9 +33,17 @@ void DbDataClientsDenyList::GetDBClientsDenyList()
     {
         // looking dafault data
         ResultSet_T r_data = Connection_executeQuery(con, "%s", "select `IP`, `CountryPrefixDeny` from clientsDenyList");
+        const char *ip_data;
+        const char *CountryPrefixDeny_data;
         while (ResultSet_next(r_data))
         {
-             ClientsDenyListData.insert(std::make_pair( ResultSet_getStringByName(r_data, "IP") , ResultSet_getStringByName(r_data, "CountryPrefixDeny")));
+            ip_data = ResultSet_getStringByName(r_data, "IP");
+            CountryPrefixDeny_data = ResultSet_getStringByName(r_data, "CountryPrefixDeny");
+
+            if ( (ip_data != NULL) && ( CountryPrefixDeny_data != NULL) )
+                    ClientsDenyListData.insert(std::make_pair( ip_data , CountryPrefixDeny_data));
+            else
+                std::cout << "Failed: select `IP`, `CountryPrefixDeny` from clientsDenyList";
         }
     }
     CATCH(SQLException)

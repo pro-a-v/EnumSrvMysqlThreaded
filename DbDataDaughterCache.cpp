@@ -11,7 +11,7 @@ DbDataDaughterCache::DbDataDaughterCache(boost::asio::io_service *io_service_, C
 
 DbDataDaughterCache::~DbDataDaughterCache()
 {
-    ;
+
 }
 
 mccmnc DbDataDaughterCache::GetDaughterRangeCache(std::string phone, mccmnc origin)
@@ -34,7 +34,8 @@ void DbDataDaughterCache::GetDaughterTables()
         ResultSet_T r_data = Connection_executeQuery(con, "%s", "SHOW TABLES like '%daughter'");
         while (ResultSet_next(r_data))
         {
-             DbDaughterTables.push_back(  ResultSet_getString(r_data, 1) );
+            const char *daughter_table =  ResultSet_getString(r_data, 1);
+            if (daughter_table != NULL) DbDaughterTables.push_back(  daughter_table );
         }
 
     }
