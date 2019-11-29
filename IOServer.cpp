@@ -105,9 +105,10 @@ void IOServer::RequestConsumerWorker()
         if (req != nullptr)
         {
             // обрабатываем запрос
+            DnsMessage NS;
             try
             {
-                DnsMessage NS( const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
+                NS.parse(const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
 
                 if (NS.Error)
                 {

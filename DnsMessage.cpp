@@ -1,6 +1,9 @@
 #include "DnsMessage.hpp"
 
-DnsMessage::DnsMessage(char *data, int len)
+
+
+
+void DnsMessage::parse(char *data, int len)
 {
     try {
         if (len > 11)  // 12 byte header of DNS record
@@ -482,5 +485,10 @@ std::string DnsMessage::NumberFromStr(char *data, int len)
     }
 
 
-return value;
+    return value;
+}
+
+DnsMessage::DnsMessage()
+{
+
 }

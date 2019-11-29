@@ -52,7 +52,8 @@ private:
     };
 
 public:
-    DnsMessage(char* data, int len);
+    DnsMessage();
+    void parse(char* data, int len);
     header_rfc header;
     query_data req;
     query_data resp;
