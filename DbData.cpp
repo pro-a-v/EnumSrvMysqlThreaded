@@ -68,7 +68,7 @@ mccmnc DbData::get(std::string phone_, DbDataDefaultCache *DbDataDefaultCache, D
        return mcc_data;
    }
 
-   std::cout <<  "Failed: No data Found for " << phone << std::endl;
+   LOG(WARNING)  <<  "Failed: No data Found for " << phone << std::endl;
    throw std::runtime_error("No data Found for ");
 
 
@@ -99,7 +99,7 @@ bool DbData::isPortable()
     }
     CATCH(SQLException)
     {
-        std::cout << "Phone " << phone << " error isPortable with " <<  Exception_frame.message;
+        LOG(WARNING) << "Phone " << phone << " error isPortable with " <<  Exception_frame.message;
     }
     END_TRY;
 

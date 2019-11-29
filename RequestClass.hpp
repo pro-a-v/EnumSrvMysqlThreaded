@@ -3,6 +3,7 @@
 
 #include <boost/asio.hpp>
 #include <string.h>
+#include <g3log/g3log.hpp>
 
 class Request
 {

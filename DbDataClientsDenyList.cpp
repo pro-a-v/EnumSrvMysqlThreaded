@@ -43,12 +43,12 @@ void DbDataClientsDenyList::GetDBClientsDenyList()
             if ( (ip_data != NULL) && ( CountryPrefixDeny_data != NULL) )
                     ClientsDenyListData.insert(std::make_pair( ip_data , CountryPrefixDeny_data));
             else
-                std::cout << "Failed: select `IP`, `CountryPrefixDeny` from clientsDenyList";
+                LOG(WARNING) << "Failed: select `IP`, `CountryPrefixDeny` from clientsDenyList";
         }
     }
     CATCH(SQLException)
     {
-        std::cout << "Failed: select `IP`, `CountryPrefixDeny` from clientsDenyList" <<  Exception_frame.message;
+        LOG(WARNING) << "Failed: select `IP`, `CountryPrefixDeny` from clientsDenyList" <<  Exception_frame.message;
         //throw std::runtime_error(sql_default);
     }
     FINALLY
@@ -85,6 +85,6 @@ void DbDataClientsDenyList::UpdateClientsDenyListWorker()
     {
         boost::this_thread::sleep_for(boost::chrono::milliseconds(60000)); // 1 min
         UpdateClientsDenyList();
-        std::cout << "DB cache for ClientsDenyList update done" << std::endl;
+        LOG(INFO) << "DB cache for ClientsDenyList update done" << std::endl;
     }
 }

@@ -8,6 +8,7 @@
 #include "RequestClass.hpp"
 
 #include "DnsMessage.hpp"
+#include <g3log/g3log.hpp>
 
 using boost::asio::ip::udp;
 

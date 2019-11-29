@@ -8,6 +8,7 @@
 #include <sstream>   // stringstream
 #include <iostream> // std::cout
 #include <boost/atomic.hpp>
+#include <g3log/g3log.hpp>
 
 typedef char uint4_t;
 typedef char uint3_t;

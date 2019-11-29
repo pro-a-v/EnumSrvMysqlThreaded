@@ -20,6 +20,8 @@
 #include <zdb/zdb.h>
 #include <zdb/SQLException.h>
 
+#include <g3log/g3log.hpp>
+
 class DbDataClientsDenyList
 {
 public:

@@ -1,6 +1,7 @@
 #include "IOServer.h"
 
 
+
 IOServer::IOServer(boost::asio::io_service& io_service, short port)
     : socket_(io_service, udp::endpoint(udp::v4(), port))
 {
@@ -120,7 +121,7 @@ void IOServer::RequestConsumerWorker()
             }
             catch(const std::exception& ex)
             {
-                std::cerr << "ClientsDenyList->isAlowed: Error occurred: " << ex.what() << std::endl;
+                LOG(WARNING) << "ClientsDenyList->isAlowed: Error occurred: " << ex.what() << std::endl;
             }
 
 
@@ -139,7 +140,7 @@ void IOServer::RequestConsumerWorker()
             }
             catch(const std::exception& ex)
             {
-                std::cerr << "ClientsDenyList->isAlowed: Error occurred: " << ex.what() << std::endl;
+                LOG(WARNING) << "ClientsDenyList->isAlowed: Error occurred: " << ex.what() << std::endl;
             }
 
 
@@ -172,7 +173,7 @@ void IOServer::SendErrorAnswer(DnsMessage *NS ,Request *req)
     }
     catch(const std::exception& ex)
     {
-        std::cerr << "IOServer::SendErrorAnswer: Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "IOServer::SendErrorAnswer: Error occurred: " << ex.what() << std::endl;
     }
 }
 
@@ -184,7 +185,7 @@ void IOServer::SendAccessDenyAnswer(DnsMessage *NS ,Request *req)
     }
     catch(const std::exception& ex)
     {
-        std::cerr << "IOServer::SendErrorAnswer: Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "IOServer::SendErrorAnswer: Error occurred: " << ex.what() << std::endl;
     }
 }
 
@@ -199,7 +200,7 @@ bool IOServer::ProcessDBRequest(DbData &dbd, DnsMessage *NS ,Request *req)
     }
     catch(const std::exception& ex)
     {
-        std::cerr << "IOServer::ProcessDBRequest Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "IOServer::ProcessDBRequest Error occurred: " << ex.what() << std::endl;
     }
 
     return false;

@@ -9,7 +9,7 @@
 #include <vector>
 #include <mutex>
 #include <map>
-
+#include <g3log/g3log.hpp>
 
 class DaugterCacheContainer
 {

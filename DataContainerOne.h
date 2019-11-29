@@ -20,7 +20,7 @@
 #include <boost/range/adaptors.hpp>
 #include <boost/foreach.hpp>
 #include <cmath>
-
+#include <g3log/g3log.hpp>
 
 
 static void trim(std::string &s) {

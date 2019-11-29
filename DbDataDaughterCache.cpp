@@ -41,7 +41,7 @@ void DbDataDaughterCache::GetDaughterTables()
     }
     CATCH(SQLException)
     {
-        std::cout << "Failed: SHOW TABLES like '%daughter'" << Exception_frame.message;
+        LOG(WARNING) << "Failed: SHOW TABLES like '%daughter'" << Exception_frame.message;
     }
     FINALLY
     {
@@ -75,7 +75,7 @@ void DbDataDaughterCache::GetDaughterTableRecords(std::string tablename)
     }
     CATCH(SQLException)
     {
-        std::cout << "Failed: " << sql_default <<  Exception_frame.message;
+        LOG(WARNING) << "Failed: " << sql_default <<  Exception_frame.message;
         throw std::runtime_error(Exception_frame.message);
     }
     FINALLY

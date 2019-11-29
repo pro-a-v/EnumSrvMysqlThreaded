@@ -29,7 +29,7 @@ bool ClientsDenyListContainer::isAlowed(std::string ip, std::string phone)
 
     }
     else {
-        std::cout << "Couldn't find " << ip << " in clientsDenyList table";
+        LOG(INFO) << "Couldn't find " << ip << " in clientsDenyList table";
         return false;
     }
 

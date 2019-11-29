@@ -39,13 +39,13 @@ void DbDataDefaultCache::GetDefaultTables()
              if (ret_data != NULL)
                  DbDefaultTables.push_back( ret_data  );
              else
-                 std::cout << "Failed to SHOW TABLES like '%default', old data used " << std::endl;
+                 LOG(WARNING) << "Failed to SHOW TABLES like '%default', old data used " << std::endl;
         }
 
     }
     CATCH(SQLException)
     {
-        std::cout << "Failed to SHOW TABLES like '%default', old data used " <<  Exception_frame.message << std::endl;
+        LOG(WARNING) << "Failed to SHOW TABLES like '%default', old data used " <<  Exception_frame.message << std::endl;
     }
     FINALLY
     {
@@ -84,7 +84,7 @@ std::vector<defaultDataRecord> DbDataDefaultCache::GetDefaultTableRecords(std::s
     }
     CATCH(SQLException)
     {
-        std::cout << "DbDataDefaultCache::GetDefaultTableRecords Failed " << sql_default <<  Exception_frame.message << std::endl;
+        LOG(WARNING) << "DbDataDefaultCache::GetDefaultTableRecords Failed " << sql_default <<  Exception_frame.message << std::endl;
         throw std::runtime_error(Exception_frame.message);
     }
     FINALLY
@@ -130,11 +130,11 @@ void DbDataDefaultCache::UpdateDefaultRangeCache()
         else
             working_ptr.store(&First);
 
-        std::cout << "DB cache for default update done" << std::endl;
+        LOG(INFO) << "DB cache for default update done" << std::endl;
     }
     catch(...)
     {
-        std::cout << "DB cache for default update finished with errors ... leaved previous cache" << std::endl;
+        LOG(WARNING) << "DB cache for default update finished with errors ... leaved previous cache" << std::endl;
     }
 
 

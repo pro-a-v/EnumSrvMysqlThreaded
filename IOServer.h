@@ -30,6 +30,8 @@
 
 #define UDP_MSG_SIZE 512
 
+#include <g3log/g3log.hpp>
+
 using boost::asio::ip::udp;
 
 

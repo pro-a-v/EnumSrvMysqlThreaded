@@ -30,11 +30,19 @@
 
 #include "RequestClass.hpp"
 
+#include <g3log/g3log.hpp>
+#include <g3log/logworker.hpp>
+#include <memory>
+#include "Customsink.hpp"
 
 
 
 int main(int argc, char* argv[])
 {
+
+       std::unique_ptr<g3::LogWorker> logworker{ g3::LogWorker::createLogWorker() };
+       auto sinkHandle = logworker->addSink(std::make_unique<CustomSink>(), &CustomSink::ReceiveLogMessage);
+       initializeLogging(logworker.get());
 
   try
   {
@@ -50,7 +58,7 @@ int main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cout << std::string("Exception:") << e.what() << std::endl;
+    LOG(WARNING) << std::string("Exception:") << e.what() << std::endl;
   }
 
 

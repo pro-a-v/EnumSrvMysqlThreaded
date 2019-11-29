@@ -10,6 +10,7 @@
 #include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <g3log/g3log.hpp>
 
 class ClientsDenyListContainer
 {
