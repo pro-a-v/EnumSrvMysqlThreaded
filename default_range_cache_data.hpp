@@ -1,8 +1,7 @@
 #ifndef DEFAULT_RANGE_CACHE_DATA_HPP
 #define DEFAULT_RANGE_CACHE_DATA_HPP
 #include <stdint.h>
-#include <cstring>
-#include <string>
+
 
 struct defaultDataRecord {
     uint16_t db_mcc = 0;

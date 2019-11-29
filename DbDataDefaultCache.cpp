@@ -31,9 +31,7 @@ void DbDataDefaultCache::GetDefaultTables()
     TRY
     {
         // looking dafault data
-        std::string sql_default = "SHOW TABLES like '%default'";
-
-        ResultSet_T r_data = Connection_executeQuery(con, "%s", sql_default.c_str());
+        ResultSet_T r_data = Connection_executeQuery(con, "%s", "SHOW TABLES like '%default'");
 
         while (ResultSet_next(r_data))
         {

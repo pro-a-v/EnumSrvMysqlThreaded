@@ -116,13 +116,23 @@ void IOServer::RequestConsumerWorker()
             }
 
 
+
             // If NOT Allowed send AccessDeny and continue with new req
-            if ( ! ClientsDenyList->isAlowed(req->sender_endpoint_.address().to_v4().to_string(), NS.GetRequestedNumber()) )
+            try
             {
-                SendAccessDenyAnswer(&NS , req);
-                delete req;
-                continue;
+                if ( ! ClientsDenyList->isAlowed(req->sender_endpoint_.address().to_v4().to_string(), NS.GetRequestedNumber()) )
+                {
+                    SendAccessDenyAnswer(&NS , req);
+                    delete req;
+                    continue;
+                }
             }
+            catch(const std::exception& ex)
+            {
+                std::cerr << "ClientsDenyList->isAlowed: Error occurred: " << ex.what() << std::endl;
+            }
+
+
 
             if (ProcessDBRequest(dbd, &NS, req))
             {
@@ -146,14 +156,26 @@ void IOServer::RequestConsumerWorker()
 
 void IOServer::SendErrorAnswer(DnsMessage *NS ,Request *req)
 {
+    try{
     boost::system::error_code ignored_ec;
     this->socket_.send_to(boost::asio::buffer(NS->AnswerError()), req->sender_endpoint_, 0, ignored_ec);
+    }
+    catch(const std::exception& ex)
+    {
+        std::cerr << "IOServer::SendErrorAnswer: Error occurred: " << ex.what() << std::endl;
+    }
 }
 
 void IOServer::SendAccessDenyAnswer(DnsMessage *NS ,Request *req)
 {
-    boost::system::error_code ignored_ec;
-    this->socket_.send_to(boost::asio::buffer(NS->AnswerAccessDeny()), req->sender_endpoint_, 0, ignored_ec);
+    try {
+        boost::system::error_code ignored_ec;
+        this->socket_.send_to(boost::asio::buffer(NS->AnswerAccessDeny()), req->sender_endpoint_, 0, ignored_ec);
+    }
+    catch(const std::exception& ex)
+    {
+        std::cerr << "IOServer::SendErrorAnswer: Error occurred: " << ex.what() << std::endl;
+    }
 }
 
 bool IOServer::ProcessDBRequest(DbData &dbd, DnsMessage *NS ,Request *req)
@@ -165,9 +187,9 @@ bool IOServer::ProcessDBRequest(DbData &dbd, DnsMessage *NS ,Request *req)
             this->socket_.send_to(boost::asio::buffer(NS->Answer(mcc_data.mcc,mcc_data.mnc)), req->sender_endpoint_, 0, ignored_ec);
             return true;
     }
-    catch (...)
+    catch(const std::exception& ex)
     {
-         // need just log an error
+        std::cerr << "IOServer::ProcessDBRequest Error occurred: " << ex.what() << std::endl;
     }
 
     return false;

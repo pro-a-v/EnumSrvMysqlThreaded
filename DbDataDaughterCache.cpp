@@ -23,7 +23,7 @@ mccmnc DbDataDaughterCache::GetDaughterRangeCache(std::string phone, mccmnc orig
 void DbDataDaughterCache::GetDaughterTables()
 {
     DbDaughterTables.clear();
-    std::string sql_default = "SHOW TABLES like '%daughter'";
+
 
     Connection_T con = nullptr;
     while (con == nullptr) con = ConnectionPool_getConnection(pool);
@@ -31,7 +31,7 @@ void DbDataDaughterCache::GetDaughterTables()
     TRY
     {
         // looking dafault data
-        ResultSet_T r_data = Connection_executeQuery(con, "%s", sql_default.c_str());
+        ResultSet_T r_data = Connection_executeQuery(con, "%s", "SHOW TABLES like '%daughter'");
         while (ResultSet_next(r_data))
         {
              DbDaughterTables.push_back(  ResultSet_getString(r_data, 1) );
@@ -40,8 +40,7 @@ void DbDataDaughterCache::GetDaughterTables()
     }
     CATCH(SQLException)
     {
-        std::cout << "Failed: " << sql_default <<  Exception_frame.message;
-        // throw std::runtime_error(Exception_frame.message);
+        std::cout << "Failed: SHOW TABLES like '%daughter'" << Exception_frame.message;
     }
     FINALLY
     {
