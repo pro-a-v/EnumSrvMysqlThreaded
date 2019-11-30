@@ -85,6 +85,6 @@ void DbDataClientsDenyList::UpdateClientsDenyListWorker()
     {
         boost::this_thread::sleep_for(boost::chrono::milliseconds(60000)); // 1 min
         UpdateClientsDenyList();
-        LOG(INFO) << "DB cache for ClientsDenyList update done" << std::endl;
+        LOG(INFO) << "DB cache for ClientsDenyList update done";
     }
 }

@@ -26,6 +26,8 @@ set(SOURCE_FILES
         DefaultDataContainer.cpp
         ClientsDenyListContainer.cpp
         DaugterCacheContainer.cpp
+        HlrCounter.cpp
+        ProcessingTypeContainer.cpp
      )
 
 

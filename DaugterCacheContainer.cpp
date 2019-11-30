@@ -45,7 +45,7 @@ mccmnc DaugterCacheContainer::get(std::string phone, mccmnc origin)
             }
         }
 
-    } catch (...) {;}
+    } catch (...) {}
 
 
 

@@ -8,7 +8,7 @@
 #include <boost/asio/signal_set.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
-#include <boost/lockfree/queue.hpp>
+
 #include <boost/atomic.hpp>
 #include <memory>
 
@@ -22,11 +22,13 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include "BlockingQueue.hpp"
 #include "DbData.hpp"
 
 #include "DbDataDefaultCache.hpp"
 #include "DbDataDaughterCache.hpp"
 #include "DbDataClientsDenyList.hpp"
+#include "HlrCounter.hpp"
 
 #define UDP_MSG_SIZE 512
 
@@ -42,43 +44,9 @@ using boost::asio::ip::udp;
 #include <iostream>
 //static boost::mutex s_iomutex;
 
-template <typename T> class BlockingQueue {
-  public:
-    explicit BlockingQueue() : _buffer() {
-    }
-
-    void push(const T &elem) {
-        boost::unique_lock<boost::mutex> lock(_mutex);
-        _pop_event.wait(lock, [&] { return _buffer.size() < _capacity; });
-        _buffer.push_back(elem);
-        _push_event.notify_one(); // notifies one of the waiting threads which are blocked on the queue
-        // assert(!_buffer.empty());
-    }
-
-    T pop() {
-        boost::unique_lock<boost::mutex> lock(_mutex);
-        _push_event.wait(lock, [&] { return _buffer.size() > 0; });
-
-        T elem = _buffer.front();
-        _buffer.pop_front();
-        _pop_event.notify_one();
-        return elem;
-    }
-
-    T size() {
-        boost::unique_lock<boost::mutex> lock(_mutex);
-        return _buffer.size();
-    }
-
-  private:
-    boost::mutex _mutex;
-    boost::condition_variable _push_event, _pop_event;
-    std::deque<T> _buffer;
-    size_t _capacity = 4096;
-};
 
 
-class IOServer
+class IOServer : public HlrCounter
 {
 public:
   IOServer(boost::asio::io_service& io_service, short port);
@@ -94,8 +62,6 @@ private:
 
 
   std::string currentDateTime();
-  //boost::lockfree::queue<Request *, boost::lockfree::fixed_sized<true> , boost::lockfree::capacity<4096>> income_queue;
-  //boost::lockfree::queue<Request *, boost::lockfree::capacity<1000>> income_queue;
 
   BlockingQueue<Request *> income_queue;
   BlockingQueue<Request *> hlr_queue;
@@ -107,7 +73,7 @@ private:
   void SendAccessDenyAnswer(DnsMessage *NS ,Request *req);
   bool ProcessDBRequest(DbData &dbd, DnsMessage *NS ,Request *req);
 
-  const char *testURL = "mysql://localhost:3306/enum?user=enumrw&password=Qazxsw12345679]";
+  const char *testURL = "mysql://localhost:3306/enum?user=enumrw&password=Enumrw147!";
   URL_T url;
   ConnectionPool_T pool;
   DbDataDefaultCache *DefaultDataCache;

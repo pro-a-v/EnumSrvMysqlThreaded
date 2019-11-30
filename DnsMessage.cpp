@@ -70,7 +70,7 @@ void DnsMessage::parse(char *data, int len)
     }
     catch(const std::exception& ex)
     {
-        LOG(WARNING) << "Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "Error occurred: " << ex.what();
 
     }
     catch (...) {
@@ -128,7 +128,7 @@ std::string DnsMessage::AnswerError()
     }
     catch(const std::exception& ex)
     {
-        LOG(WARNING) << "Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "Error occurred: " << ex.what();
 
     }
     catch (...)
@@ -184,7 +184,7 @@ std::string DnsMessage::AnswerAccessDeny()
     }
     catch(const std::exception& ex)
     {
-        LOG(WARNING) << "Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "Error occurred: " << ex.what();
 
     }
     catch (...)
@@ -284,7 +284,7 @@ std::string DnsMessage::Answer(uint16_t mcc,uint8_t mnc)
     }
     catch(const std::exception& ex)
     {
-        LOG(WARNING) << "Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "Error occurred: " << ex.what();
 
     }
     catch (...)
@@ -384,7 +384,7 @@ std::string DnsMessage::Answer(std::string mcc,std::string mnc)
     }
     catch(const std::exception& ex)
     {
-        LOG(WARNING) << "Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "Error occurred: " << ex.what();
 
     }
     catch (...)
@@ -494,7 +494,7 @@ std::string DnsMessage::NumberFromStr(char *data, int len)
     }
     catch(const std::exception& ex)
     {
-        LOG(WARNING) << "DnsMessage::NumberFromStr: Error occurred: " << ex.what() << data << std::endl;
+        LOG(WARNING) << "DnsMessage::NumberFromStr: Error occurred: " << ex.what() << data;
     }
 
 

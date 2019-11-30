@@ -48,7 +48,7 @@ mccmnc DefaultDataContainer::get(std::string phone)
     }
     catch(const std::exception& ex)
     {
-        LOG(WARNING) << "DefaultDataContainer::get: Error occurred: " << ex.what() << std::endl;
+        LOG(WARNING) << "DefaultDataContainer::get: Error occurred: " << ex.what();
     }
 
 

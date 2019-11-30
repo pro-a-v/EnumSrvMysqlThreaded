@@ -41,8 +41,11 @@ int main(int argc, char* argv[])
 {
 
        std::unique_ptr<g3::LogWorker> logworker{ g3::LogWorker::createLogWorker() };
+       //auto logworker = g3::LogWorker::createLogWorker();
+       auto handle = logworker->addDefaultLogger("enum.log", "/var/log/enum");
        auto sinkHandle = logworker->addSink(std::make_unique<CustomSink>(), &CustomSink::ReceiveLogMessage);
        initializeLogging(logworker.get());
+
 
   try
   {

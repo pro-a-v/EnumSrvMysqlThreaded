@@ -119,9 +119,9 @@ void DbDataDaughterCache::UpdateDaughterRangeCache()
         else
             working_ptr.store(&First);
 
-         std::cout << "DB cache for daughter update done" << std::endl;
+        LOG(INFO) << "DB cache for daughter update done";
     } catch (...) {
-        std::cout << "DB cache for daughter update failed leaved old buffer " << std::endl;
+        LOG(WARNING) << "DB cache for daughter update failed leaved old buffer ";
 
     }
 
