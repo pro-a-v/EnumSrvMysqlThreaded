@@ -62,7 +62,7 @@ void DbDataClientsDenyList::GetDBClientsDenyList()
 
 void DbDataClientsDenyList::UpdateClientsDenyList()
 {
-    try {
+
         GetDBClientsDenyList();
         if (ClientsDenyListData.size() > 0) // No Errors when get DB Data
         {
@@ -76,12 +76,8 @@ void DbDataClientsDenyList::UpdateClientsDenyList()
                 First.update(ClientsDenyListData);
                 working_ptr.store(&First);
             }
-        LOG(INFO) << "DB cache for ClientsDenyList update done";
         }
 
-    } catch (const std::exception& ex) {
-        LOG(WARNING) << "DbDataClientsDenyList::UpdateClientsDenyList Error occurred: " << ex.what();
-    }
 
 }
 
