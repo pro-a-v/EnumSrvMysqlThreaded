@@ -9,6 +9,7 @@ ProcessingTypeContainer::ProcessingTypeContainer()
 
 std::string ProcessingTypeContainer::getType(std::string phone)
 {
+
     uint64_t int_phone = boost::lexical_cast<uint64_t>(phone);
 
     for (const auto &Record : ProcessingTypeData)

@@ -144,10 +144,8 @@ void IOServer::RequestConsumerWorker()
                 LOG(WARNING) << "ClientsDenyList->isAlowed: Error occurred: " << ex.what();
             }
 
-
-            LOG(INFO) <<  NS.GetRequestedNumber();
-            LOG(INFO) <<  ProcessingType_Cache->Get_ProcessingType(NS.GetRequestedNumber());
-
+               LOG(WARNING) << NS.GetRequestedNumber();
+               LOG(WARNING) << ProcessingType_Cache->Get_ProcessingType(NS.GetRequestedNumber());
 
             if (ProcessingType_Cache->Get_ProcessingType(NS.GetRequestedNumber()) == std::string("hlr"))
             {
