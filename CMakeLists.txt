@@ -22,6 +22,7 @@ set(SOURCE_FILES
         DbData.cpp
         DbDataDefaultCache.cpp
         DbDataDaughterCache.cpp
+        DbData_ProcessingType_Cache.cpp
         DbDataClientsDenyList.cpp
         DefaultDataContainer.cpp
         ClientsDenyListContainer.cpp

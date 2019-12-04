@@ -31,7 +31,8 @@ public:
 
     mccmnc GetDefaultRangeCache(std::string phone);
 private:
-
+    // ----------------------
+    boost::asio::io_service *io_service;
     ConnectionPool_T pool;
 
     // Default Ranges Cache
@@ -52,9 +53,7 @@ private:
     DefaultDataContainer First, Second;
     std::atomic<DefaultDataContainer*> working_ptr;
 
-    // ----------------------
 
-    boost::asio::io_service *io_service;
 
 };
 

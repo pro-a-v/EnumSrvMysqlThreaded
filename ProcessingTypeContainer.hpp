@@ -19,6 +19,8 @@ public:
     void update(std::vector<ProcessingTypeRecord> data);
 private:
     std::vector<ProcessingTypeRecord> ProcessingTypeData;
+
+
 };
 
 #endif // PROCESSINGTYPECONTAINER_HPP
