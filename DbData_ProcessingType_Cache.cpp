@@ -92,3 +92,9 @@ void DbData_ProcessingType_Cache::Update_DB_ProcessingType_Worker()
         Update_DB_ProcessingType();
     }
 }
+
+std::string DbData_ProcessingType_Cache::Get_ProcessingType(std::string phone)
+{
+    ProcessingTypeContainer *working_container = working_ptr.load();
+    return working_container->getType(phone);
+}

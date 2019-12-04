@@ -144,19 +144,27 @@ void IOServer::RequestConsumerWorker()
                 LOG(WARNING) << "ClientsDenyList->isAlowed: Error occurred: " << ex.what();
             }
 
-
-
-            if (ProcessDBRequest(dbd, &NS, req))
+            if (ProcessingType_Cache->Get_ProcessingType(NS.GetRequestedNumber()) == std::string("hlr"))
             {
+                // Still not implement HLR Lookup - just log
+                LOG(INFO) << "ProcessingType_Cache->Get_ProcessingType hlr is not implement ";
+                SendErrorAnswer(&NS , req);
                 delete req;
                 continue;
             }
             else
             {
-                // error answer
-                SendErrorAnswer(&NS , req);
-                delete req;
+                if (ProcessDBRequest(dbd, &NS, req))
+                {
+                    delete req;
+                    continue;
+                }
             }
+
+
+
+
+
 
 
 
