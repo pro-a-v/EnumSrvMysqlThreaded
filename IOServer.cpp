@@ -31,6 +31,7 @@ IOServer::IOServer(boost::asio::io_service& io_service, short port)
     DefaultDataCache = new DbDataDefaultCache(&io_service, pool);
     DaughterDataCache = new DbDataDaughterCache(&io_service, pool);
     ClientsDenyList = new DbDataClientsDenyList(&io_service, pool);
+    ProcessingType_Cache = new DbData_ProcessingType_Cache(&io_service, pool);
 
 
 

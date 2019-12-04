@@ -27,6 +27,7 @@
 
 #include "DbDataDefaultCache.hpp"
 #include "DbDataDaughterCache.hpp"
+#include "DbData_ProcessingType_Cache.hpp"
 #include "DbDataClientsDenyList.hpp"
 #include "HlrCounter.hpp"
 
@@ -79,6 +80,7 @@ private:
   DbDataDefaultCache *DefaultDataCache;
   DbDataDaughterCache *DaughterDataCache;
   DbDataClientsDenyList *ClientsDenyList;
+  DbData_ProcessingType_Cache *ProcessingType_Cache;
 
 };
 
