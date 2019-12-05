@@ -12,6 +12,7 @@ public:
 
     std::string raw_data;
     boost::asio::ip::udp::endpoint sender_endpoint_;
+    boost::posix_time::ptime income_utc_time;
 };
 
 

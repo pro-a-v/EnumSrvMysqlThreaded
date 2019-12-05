@@ -144,9 +144,6 @@ void IOServer::RequestConsumerWorker()
                 LOG(WARNING) << "ClientsDenyList->isAlowed: Error occurred: " << ex.what();
             }
 
-               LOG(WARNING) << NS.GetRequestedNumber();
-               LOG(WARNING) << ProcessingType_Cache->Get_ProcessingType(NS.GetRequestedNumber());
-
             if (ProcessingType_Cache->Get_ProcessingType(NS.GetRequestedNumber()) == std::string("hlr"))
             {
                 // Still not implement HLR Lookup - just log
