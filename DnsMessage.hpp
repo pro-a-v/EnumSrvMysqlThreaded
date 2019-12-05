@@ -50,6 +50,7 @@ private:
         uint16_t Type;
         uint16_t Class;
         std::string number;
+        uint16_t DNS_query_size;
     };
 
 public:

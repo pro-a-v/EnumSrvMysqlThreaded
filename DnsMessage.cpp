@@ -38,10 +38,19 @@ void DnsMessage::parse(char *data, int len)
             // Get Request
             if (Error == false)
             {
-                req.size = len - 12;
-                std::memcpy(req.data , data + 12, req.size );
-                req.Type = uint16_value(req.data + req.size - 4 );
-                req.Class = uint16_value(req.data + req.size - 2 );
+                //req.size = len - 12;
+                //std::memcpy(req.data , data + 12, req.size );
+
+                // Skip Header 12 bytes and read until 0x00 char
+                std::string query_record(reinterpret_cast<const char*>(data + 12));
+                req.DNS_query_size = query_record.size();
+
+                std::memcpy(req.data , query_record.c_str(), req.DNS_query_size);
+
+                // Header (12 bytes) +  query_record (query DNS name) +1 ( from next byte)
+                req.Type = uint16_value(data + 12 + req.DNS_query_size + 1 );
+                // Header (12 bytes) +  query_record (query DNS name) + Request Type (2 bytes)
+                req.Class = uint16_value(data + 12 + req.DNS_query_size + 1 + 2 );
             }
 
             // We serve only NAPTR
@@ -58,7 +67,7 @@ void DnsMessage::parse(char *data, int len)
                 ErrorText = "We serve only NAPTR with Class = IN, got Class " + std::to_string(req.Class);
             }
 
-            req.number = NumberFromStr(req.data, req.size);
+            req.number = NumberFromStr(req.data, req.DNS_query_size);
             //std::cout << std::string("Number ") << req.number << std::string(" requested") << std::endl;
         }
         else
