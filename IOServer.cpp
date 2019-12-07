@@ -3,7 +3,7 @@
 
 
 IOServer::IOServer(boost::asio::io_service& io_service, short port)
-    : HlrCounter(), socket_(io_service, udp::endpoint(udp::v4(), port))
+    : socket_(io_service, udp::endpoint(udp::v4(), port))
 {
 
     done.store(false, boost::memory_order_release);

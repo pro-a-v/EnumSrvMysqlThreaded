@@ -1,14 +1,14 @@
-#ifndef HLRCOUNTER_HPP
-#define HLRCOUNTER_HPP
+#ifndef HLR_COUNTER_HPP
+#define HLR_COUNTER_HPP
 #include <atomic>
 
-class HlrCounter
+class Hlr_Counter
 {
 public:
-    HlrCounter();
+    Hlr_Counter();
     unsigned int hlr_get_num();
 private:
     std::atomic<unsigned int> id{0};
 };
 
-#endif // HLRCOUNTER_HPP
+#endif // HLR_COUNTER_HPP

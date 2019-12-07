@@ -29,7 +29,7 @@
 #include "DbDataDaughterCache.hpp"
 #include "DbData_ProcessingType_Cache.hpp"
 #include "DbDataClientsDenyList.hpp"
-#include "HlrCounter.hpp"
+
 
 #define UDP_MSG_SIZE 512
 
@@ -47,7 +47,7 @@ using boost::asio::ip::udp;
 
 
 
-class IOServer : public HlrCounter
+class IOServer
 {
 public:
   IOServer(boost::asio::io_service& io_service, short port);
@@ -65,7 +65,7 @@ private:
   std::string currentDateTime();
 
   BlockingQueue<Request *> income_queue;
-  BlockingQueue<Request *> hlr_queue;
+
 
   boost::atomic<bool> done;
 

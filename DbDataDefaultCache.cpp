@@ -12,7 +12,7 @@ DbDataDefaultCache::DbDataDefaultCache(boost::asio::io_service *io_service_, Con
 
 DbDataDefaultCache::~DbDataDefaultCache()
 {
-    ;
+
 }
 
 mccmnc DbDataDefaultCache::GetDefaultRangeCache(std::string phone)
