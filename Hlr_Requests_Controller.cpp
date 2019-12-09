@@ -1,21 +1,16 @@
 #include "Hlr_Requests_Controller.hpp"
 
-Hlr_Requests_Controller::Hlr_Requests_Controller(boost::asio::io_service &io_service_):
-    Hlr_Counter()
+Hlr_Requests_Controller::Hlr_Requests_Controller(boost::asio::io_service &io_service_): io_service(io_service_)
 {
-    Requests = new std::unordered_map<unsigned int, Request&>;
+
     condition_working = true;
 
     boost::thread worker(&Hlr_Requests_Controller::thread_worker, this);
 }
 
-void Hlr_Requests_Controller::add_Request(Request &req)
+void Hlr_Requests_Controller::add_Request(Request *req)
 {
-    std::lock_guard<std::mutex> guard(_mutex);
-    std::pair<unsigned int, Request&> enumerated_req (hlr_get_num(), req);
-    // for each request increase last request time - for timeout
-    //last_request_income_utc_time = boost::posix_time::microsec_clock::universal_time();
-    Requests->insert( enumerated_req );
+    income_queue.push(req);
 }
 
 void Hlr_Requests_Controller::thread_worker()
@@ -25,10 +20,13 @@ void Hlr_Requests_Controller::thread_worker()
     {
 
        std::lock_guard<std::mutex> guard(_mutex);
-       if (Requests->size() > 0)
+       if (income_queue.size() > 0)
        {
+            std::cout << income_queue.size() << std::endl;
+            HTTP11_Pipelined_Client = new Hlr_Requests_HTTP11_Pipelined_Client(io_service, income_queue.size(), &income_queue);
 
        }
+       boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
     }
 
 }

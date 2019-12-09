@@ -1,6 +1,7 @@
 #ifndef BLOCKINGQUEUE_HPP
 #define BLOCKINGQUEUE_HPP
 #include <boost/lockfree/queue.hpp>
+#include <boost/thread.hpp>
 
 template <typename T> class BlockingQueue {
   public:
@@ -25,7 +26,7 @@ template <typename T> class BlockingQueue {
         return elem;
     }
 
-    T size() {
+    size_t size() {
         boost::unique_lock<boost::mutex> lock(_mutex);
         return _buffer.size();
     }
@@ -34,7 +35,7 @@ template <typename T> class BlockingQueue {
     boost::mutex _mutex;
     boost::condition_variable _push_event, _pop_event;
     std::deque<T> _buffer;
-    size_t _capacity = 4096;
+    size_t _capacity = 8192;
 };
 
 #endif // BLOCKINGQUEUE_HPP

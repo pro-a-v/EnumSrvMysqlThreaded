@@ -27,7 +27,7 @@ set(SOURCE_FILES
         DefaultDataContainer.cpp
         ClientsDenyListContainer.cpp
         DaugterCacheContainer.cpp
-        Hlr_Counter.cpp
+        Uid_Counter.cpp
         Hlr_Requests_Controller.cpp
         Hlr_Requests_HTTP11_Pipelined_Client.cpp
         ProcessingTypeContainer.cpp

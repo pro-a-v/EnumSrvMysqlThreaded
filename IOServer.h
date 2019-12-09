@@ -25,11 +25,12 @@
 #include "BlockingQueue.hpp"
 #include "DbData.hpp"
 
+#include "Uid_Counter.hpp"
 #include "DbDataDefaultCache.hpp"
 #include "DbDataDaughterCache.hpp"
 #include "DbData_ProcessingType_Cache.hpp"
 #include "DbDataClientsDenyList.hpp"
-
+#include "Hlr_Requests_Controller.hpp"
 
 #define UDP_MSG_SIZE 512
 
@@ -47,7 +48,7 @@ using boost::asio::ip::udp;
 
 
 
-class IOServer
+class IOServer: public Uid_Counter
 {
 public:
   IOServer(boost::asio::io_service& io_service, short port);
@@ -81,6 +82,7 @@ private:
   DbDataDaughterCache *DaughterDataCache;
   DbDataClientsDenyList *ClientsDenyList;
   DbData_ProcessingType_Cache *ProcessingType_Cache;
+  Hlr_Requests_Controller *Hlr_Requests_Controller_ptr;
 
 };
 

@@ -3,7 +3,7 @@
 
 
 IOServer::IOServer(boost::asio::io_service& io_service, short port)
-    : socket_(io_service, udp::endpoint(udp::v4(), port))
+    : Uid_Counter() ,socket_(io_service, udp::endpoint(udp::v4(), port))
 {
 
     done.store(false, boost::memory_order_release);
@@ -32,6 +32,7 @@ IOServer::IOServer(boost::asio::io_service& io_service, short port)
     DaughterDataCache = new DbDataDaughterCache(&io_service, pool);
     ClientsDenyList = new DbDataClientsDenyList(&io_service, pool);
     ProcessingType_Cache = new DbData_ProcessingType_Cache(&io_service, pool);
+    Hlr_Requests_Controller_ptr = new Hlr_Requests_Controller(io_service);
 
 
 
@@ -51,7 +52,7 @@ IOServer::IOServer(boost::asio::io_service& io_service, short port)
              Request *request = new Request(data_,bytes_recvd, sender_endpoint_);
              income_queue.push(request);
           }
-    	    boost::this_thread::sleep_for(boost::chrono::milliseconds(2));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
             do_receive();
 
     });
@@ -78,7 +79,7 @@ void IOServer::do_receive()
           Request *request = new Request(data_,bytes_recvd,sender_endpoint_);
           income_queue.push(request);
         }
-          boost::this_thread::sleep_for(boost::chrono::milliseconds(2));
+          boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
           do_receive();
 
       });
@@ -125,14 +126,14 @@ void IOServer::RequestConsumerWorker()
                 LOG(WARNING) << "ClientsDenyList->isAlowed: Error occurred: " << ex.what();
             }
 
-
+            req->phone_number = NS.GetRequestedNumber();
 
 
 
             // If NOT Allowed send AccessDeny and continue with new req
             try
             {
-                if ( ! ClientsDenyList->isAlowed(req->sender_endpoint_.address().to_v4().to_string(), NS.GetRequestedNumber()) )
+                if ( ! ClientsDenyList->isAlowed(req->sender_endpoint_.address().to_v4().to_string(), req->phone_number) )
                 {
                     SendAccessDenyAnswer(&NS , req);
                     delete req;
@@ -144,12 +145,9 @@ void IOServer::RequestConsumerWorker()
                 LOG(WARNING) << "ClientsDenyList->isAlowed: Error occurred: " << ex.what();
             }
 
-            if (ProcessingType_Cache->Get_ProcessingType(NS.GetRequestedNumber()) == std::string("hlr"))
+            if (ProcessingType_Cache->Get_ProcessingType(req->phone_number) == std::string("hlr"))
             {
-                // Still not implement HLR Lookup - just log
-                LOG(INFO) << "ProcessingType_Cache->Get_ProcessingType hlr is not implement ";
-                SendErrorAnswer(&NS , req);
-                delete req;
+                Hlr_Requests_Controller_ptr->add_Request(req);
                 continue;
             }
             else
