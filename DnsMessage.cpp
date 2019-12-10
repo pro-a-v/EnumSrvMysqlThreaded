@@ -69,7 +69,7 @@ void DnsMessage::parse(char *data, int len)
             }
 
             req.number = NumberFromStr(req.data, strlen(req.data));
-            std::cout << std::string("Number ") << req.number << std::string(" requested") << std::endl;
+            //std::cout << std::string("Number ") << req.number << std::string(" requested") << std::endl;
         }
         else
         {

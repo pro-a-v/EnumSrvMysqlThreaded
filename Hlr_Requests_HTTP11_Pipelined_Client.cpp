@@ -88,7 +88,18 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce(const boost::sys
       std::string target{buffers_begin(response_.data()), buffers_end(response_.data())};
       pret = phr_parse_response(target.c_str(), target.size(), &minor_version, &status, &msg, &msg_len, headers, &num_headers, last_len);
 
-      std::cerr << msg;
+      std::string Content_Length = std::string("Content-Length");
+      std::string body;
+
+
+      if (status == 200)
+      {
+           char* ptr = strrchr(msg, 0x0a);
+           body = std::string(ptr, msg_len - (size_t)(ptr-msg) );
+      }
+
+
+      std::cerr << body;
       //  boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
 
     }

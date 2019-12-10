@@ -3,6 +3,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <bits/stdc++.h>
 
 #include "DnsMessage.hpp"
 #include "BlockingQueue.hpp"
