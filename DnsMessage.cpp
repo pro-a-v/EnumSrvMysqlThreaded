@@ -341,8 +341,12 @@ std::string DnsMessage::Answer(std::string mcc,std::string mnc)
       msg.append(uint16_buff(0), 2);
 
 
-      // write questions
-      msg.append(req.data, req.size);
+      // write questions with last 0x00
+      msg.append(req.data, strlen(req.data)+1);
+      // Request Type
+      msg.append(uint16_buff(req.Type), 2);
+      // Request Class
+      msg.append(uint16_buff(req.Class), 2);
 
 
       // write answer
