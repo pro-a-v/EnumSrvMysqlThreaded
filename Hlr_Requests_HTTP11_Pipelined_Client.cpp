@@ -11,6 +11,8 @@ Hlr_Requests_HTTP11_Pipelined_Client::Hlr_Requests_HTTP11_Pipelined_Client(boost
           requests.push_back(income_queue->pop());
     }
 
+    client_start_utc_time = boost::posix_time::microsec_clock::universal_time();
+
     create_http_requests();
 
     // Attempt a connection to endpoint
@@ -75,12 +77,19 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce(const boost::sys
     if (!err)
     {
       // Write all of the data that has been read so far.
-      std::cerr << &response_;
 
-      //if (--number_of_requests >0 ){
-        std::cerr << "\nread resp \n" ;
+
+      char buf[4096], *method, *path;
+      int pret, minor_version, status;
+      struct phr_header headers[100];
+      size_t buflen = 0, prevbuflen = 0, method_len, path_len, num_headers, msg_len, last_len = 0;
+      ssize_t rret;
+      const char *msg;
+      std::string target{buffers_begin(response_.data()), buffers_end(response_.data())};
+      pret = phr_parse_response(target.c_str(), target.size(), &minor_version, &status, &msg, &msg_len, headers, &num_headers, last_len);
+
+      std::cerr << msg;
       //  boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
-      //  }
 
     }
     else if (err != boost::asio::error::eof)

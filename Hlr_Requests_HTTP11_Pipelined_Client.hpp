@@ -7,6 +7,7 @@
 #include "DnsMessage.hpp"
 #include "BlockingQueue.hpp"
 #include "RequestClass.hpp"
+#include "picohttpparser.hpp"
 
 
 class Hlr_Requests_HTTP11_Pipelined_Client
@@ -24,6 +25,8 @@ private:
   boost::asio::streambuf request_;
   boost::asio::streambuf response_;
 
+
+  boost::posix_time::ptime client_start_utc_time;
 
   BlockingQueue<Request *> *income_queue_;
   std::vector<Request *> requests;
