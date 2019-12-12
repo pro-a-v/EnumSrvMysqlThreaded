@@ -16,7 +16,8 @@ Hlr_Requests_HTTP11_Pipelined_Client::Hlr_Requests_HTTP11_Pipelined_Client(boost
     create_http_requests();
 
     // Attempt a connection to endpoint
-    boost::asio::ip::tcp::endpoint tcp_endpoint( boost::asio::ip::address::from_string("10.15.0.81"),  15335   );
+    //boost::asio::ip::tcp::endpoint tcp_endpoint( boost::asio::ip::address::from_string("10.15.0.81"),  15335   );
+    boost::asio::ip::tcp::endpoint tcp_endpoint( boost::asio::ip::address::from_string("127.0.0.1"),  15335   );
     socket_.async_connect(tcp_endpoint,  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_connect, this,  boost::asio::placeholders::error));
 }
 
@@ -60,7 +61,7 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_write_request(const boost::sys
     if (!err)
     {
       // Read the response
-      boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
+      boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
     }
     else
     {
@@ -72,39 +73,70 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_write_request(const boost::sys
 
 
 
-void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce(const boost::system::error_code& err, std::size_t bytes_transferred)
+void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers(const boost::system::error_code& err, std::size_t bytes_transferred)
 {
     if (!err)
     {
       // Write all of the data that has been read so far.
+        // Check that response is OK.
+      std::istream response_stream(&response_);
+      std::string http_version;
+      response_stream >> http_version;
+      //std::cout << "V : " << http_version << std::endl;
 
+      unsigned int status_code;
+      response_stream >> status_code;
 
-      char buf[4096], *method, *path;
-      int pret, minor_version, status;
-      struct phr_header headers[100];
-      size_t buflen = 0, prevbuflen = 0, method_len, path_len, num_headers, msg_len, last_len = 0;
-      ssize_t rret;
-      const char *msg;
-      std::string target{buffers_begin(response_.data()), buffers_end(response_.data())};
-      pret = phr_parse_response(target.c_str(), target.size(), &minor_version, &status, &msg, &msg_len, headers, &num_headers, last_len);
-
-      std::string Content_Length = std::string("Content-Length");
-      std::string body;
-
-
-      if (status == 200)
+      if (status_code == 200)
       {
-           char* ptr = strrchr(msg, 0x0a);
-           body = std::string(ptr, msg_len - (size_t)(ptr-msg) );
+          std::string status_message;
+          std::getline(response_stream, status_message);
+
+
+          std::string header;
+          std::string content_length = std::string("content-length:");
+          std::string content_length_value = "0";
+          std::size_t content_length_value_int = 0;
+
+          //read the headers.
+          while (std::getline(response_stream, header) && header != "\r")
+          {
+                boost::algorithm::to_lower(header);
+                std::size_t found = header.find(content_length);
+                if ( found != std::string::npos)
+                {
+                      content_length_value =  header.substr(found + content_length.size() ) ;
+                      boost::trim(content_length_value);
+                      content_length_value_int = boost::lexical_cast<std::size_t>(content_length_value);
+                }
+          }
+
+          if ( content_length_value_int > 0 )
+          {
+              // read body
+              boost::asio::async_read(socket_, response_, boost::asio::transfer_at_least(content_length_value_int),  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
+          }
       }
-
-
-      std::cerr << body;
-      //  boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
 
     }
     else if (err != boost::asio::error::eof)
     {
       std::cout << "Error: " << err << "\n";
     }
+}
+
+void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost::system::error_code &err, std::size_t bytes_transferred)
+{
+    if (!err)
+    {
+       std::ostringstream ss;
+       ss << &response_;
+       std::string data(ss.str());
+       std::cout << data << std::endl;
+    }
+    else if (err != boost::asio::error::eof)
+    {
+      std::cout << "Error: " << err << "\n";
+    }
+    
 }

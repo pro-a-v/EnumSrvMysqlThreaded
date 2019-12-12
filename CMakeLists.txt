@@ -31,8 +31,6 @@ set(SOURCE_FILES
         Hlr_Requests_Controller.cpp
         Hlr_Requests_HTTP11_Pipelined_Client.cpp
         ProcessingTypeContainer.cpp
-        picohttpparser.cpp
-
      )
 
 

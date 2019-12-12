@@ -22,7 +22,7 @@ void Hlr_Requests_Controller::thread_worker()
        std::lock_guard<std::mutex> guard(_mutex);
        if (income_queue.size() > 0)
        {
-            std::cout << income_queue.size() << std::endl;
+            // std::cout << income_queue.size() << std::endl;
             HTTP11_Pipelined_Client = new Hlr_Requests_HTTP11_Pipelined_Client(io_service, income_queue.size(), &income_queue);
 
        }

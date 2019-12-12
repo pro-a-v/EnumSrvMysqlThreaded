@@ -3,12 +3,13 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-#include <bits/stdc++.h>
+#include <boost/algorithm/string.hpp>
 
 #include "DnsMessage.hpp"
 #include "BlockingQueue.hpp"
 #include "RequestClass.hpp"
-#include "picohttpparser.hpp"
+
+#include <boost/lexical_cast.hpp>
 
 
 class Hlr_Requests_HTTP11_Pipelined_Client
@@ -19,7 +20,8 @@ private:
   void create_http_requests();
   void handle_connect(const boost::system::error_code& err);
   void handle_write_request(const boost::system::error_code& err);
-  void handle_read_responce(const boost::system::error_code& err, std::size_t bytes_transferred);
+  void handle_read_responce_headers(const boost::system::error_code& err, std::size_t bytes_transferred);
+  void handle_read_responce_body(const boost::system::error_code& err, std::size_t bytes_transferred);
 
   boost::asio::ip::tcp::resolver resolver_;
   boost::asio::ip::tcp::socket socket_;
