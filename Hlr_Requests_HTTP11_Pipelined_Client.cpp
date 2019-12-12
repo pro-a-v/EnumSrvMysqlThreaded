@@ -114,6 +114,9 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers(const bo
           if ( content_length_value_int > 0 )
           {
               // read body
+              std::cout << " Body size: " << content_length_value_int;
+              std::cout << " Data size: " << response_.size();
+              std::cout << " Data capacity: " << response_.capacity();
               boost::asio::async_read(socket_, response_, boost::asio::transfer_at_least(content_length_value_int),  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
           }
       }

@@ -36,7 +36,6 @@ IOServer::IOServer(boost::asio::io_service& io_service, short port)
 
 
 
-
     for (unsigned i=0;i<16;i++)
     {
         boost::thread worker(&IOServer::RequestConsumerWorker, this);
@@ -50,6 +49,7 @@ IOServer::IOServer(boost::asio::io_service& io_service, short port)
           if (!ec && bytes_recvd > 0)
           {
              Request *request = new Request(data_,bytes_recvd, sender_endpoint_);
+             request->uid = get_uid();
              income_queue.push(request);
           }
             boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
@@ -77,6 +77,7 @@ void IOServer::do_receive()
         if (!ec && bytes_recvd > 0)
         {
           Request *request = new Request(data_,bytes_recvd,sender_endpoint_);
+          request->uid = get_uid();
           income_queue.push(request);
         }
           boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
