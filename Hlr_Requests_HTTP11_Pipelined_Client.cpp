@@ -3,9 +3,9 @@
 
 using boost::asio::ip::tcp;
 
-Hlr_Requests_HTTP11_Pipelined_Client::Hlr_Requests_HTTP11_Pipelined_Client(boost::asio::io_service& io_service, size_t requests_count,  BlockingQueue<Request *> *income_queue):
-    resolver_(io_service), socket_(io_service), income_queue_(income_queue)
-  {
+Hlr_Requests_HTTP11_Pipelined_Client::Hlr_Requests_HTTP11_Pipelined_Client(boost::asio::io_service& io_service, size_t requests_count,  BlockingQueue<Request *> *income_queue, boost::asio::ip::udp::socket *socket_udp_):
+    resolver_(io_service), socket_(io_service), income_queue_(income_queue), socket_udp(socket_udp_)
+{
     for (size_t i=0; i < requests_count; i++)
     {
           requests.push_back(income_queue->pop());
@@ -136,12 +136,35 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
 {
     if (!err)
     {
-       std::ostringstream ss;
-       ss << &response_;
-       std::string data(ss.str());
-       std::cout << data << std::endl;
+        std::ostringstream ss;
+        try {
 
-       rapidjson::Document doc;
+            ss << &response_;
+            std::string data(ss.str());
+            std::cout << data << std::endl;
+
+            rapidjson::Document doc;
+            doc.Parse(data.c_str());
+            rapidjson::Value& srism_ack = doc["srism_ack"];
+            std::string mcc_mnc = srism_ack["mccmnc"].GetString();
+            unsigned int uid = srism_ack["request_id"].GetInt();
+            std::string error_code  = srism_ack["errcode"].GetString();
+            process_answer(error_code, uid, mcc_mnc);
+
+            if (response_.size() > 100) // We have additional data in buffer
+            {
+                handle_read_responce_headers(err, response_.size());
+            }
+            else
+            {
+                if ( requests.size() > 0 ) // Not all requests processed - read socket
+                    boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
+
+            }
+
+
+        } catch (...) {}
+
 
     }
     else if (err != boost::asio::error::eof)
@@ -149,4 +172,41 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
       std::cout << "Error: " << err << "\n";
     }
     
+}
+
+void Hlr_Requests_HTTP11_Pipelined_Client::process_answer(std::string error_code, unsigned int uid, std::string mcc_mnc)
+{
+ // error_code - Possible values : - Success - Unknown Subscriber - Absent Subscriber - System failure - Data missing - Unexpected Data Value - Illegal Equipment - Timeout
+    if (error_code == std::string("Success"))
+    {
+        DnsMessage NS;
+        Request *req = get_req(uid);
+
+        if (req != nullptr)
+        {
+        NS.parse(const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
+        //mccmnc mcc_data;
+        boost::system::error_code ignored_ec;
+        //socket_udp->send_to(boost::asio::buffer(NS.Answer(mcc_data.mcc,mcc_data.mnc)), req->sender_endpoint_, 0, ignored_ec);
+        socket_udp->send_to(boost::asio::buffer(NS.Answer(mcc_mnc.substr(0,3),mcc_mnc.substr(3,mcc_mnc.size()-3))), req->sender_endpoint_, 0, ignored_ec);
+        delete req;
+        }
+    }
+    else
+    {
+
+    }
+}
+
+Request *Hlr_Requests_HTTP11_Pipelined_Client::get_req(unsigned int uid)
+{
+    for (std::vector<Request *>::iterator it = requests.begin() ; it != requests.end(); ++it)
+    {
+        if ( (*it)->uid == uid )
+        {
+            Request *req = (*it);
+            requests.erase(it);
+            return req;
+        }
+    }
 }

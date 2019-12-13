@@ -11,18 +11,21 @@
 
 #include <boost/lexical_cast.hpp>
 #include "include/rapidjson/document.h"
+#include "mccmnc.hpp"
 
 
 class Hlr_Requests_HTTP11_Pipelined_Client
 {
 public:
-    Hlr_Requests_HTTP11_Pipelined_Client(boost::asio::io_service &io_service, size_t requests_count,  BlockingQueue<Request *> *income_queue);
+    Hlr_Requests_HTTP11_Pipelined_Client(boost::asio::io_service &io_service, size_t requests_count,  BlockingQueue<Request *> *income_queue, boost::asio::ip::udp::socket *socket_udp_);
 private:
   void create_http_requests();
   void handle_connect(const boost::system::error_code& err);
   void handle_write_request(const boost::system::error_code& err);
   void handle_read_responce_headers(const boost::system::error_code& err, std::size_t bytes_transferred);
   void handle_read_responce_body(const boost::system::error_code& err, std::size_t bytes_transferred);
+  void process_answer(std::string error_code, unsigned int uid, std::string mcc_mnc);
+  Request *get_req(unsigned int uid);
 
   boost::asio::ip::tcp::resolver resolver_;
   boost::asio::ip::tcp::socket socket_;
@@ -34,6 +37,8 @@ private:
 
   BlockingQueue<Request *> *income_queue_;
   std::vector<Request *> requests;
+
+  boost::asio::ip::udp::socket *socket_udp;
 
 };
 

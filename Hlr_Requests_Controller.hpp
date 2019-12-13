@@ -13,7 +13,7 @@
 class Hlr_Requests_Controller
 {
 public:
-    Hlr_Requests_Controller(boost::asio::io_service &io_service_);
+    Hlr_Requests_Controller(boost::asio::io_service &io_service_, boost::asio::ip::udp::socket *socket_udp_);
     void add_Request(Request *req);
     void process_Requests_worker();
     void process_Requests();
@@ -25,6 +25,7 @@ private:
     bool condition_working;
     std::mutex _mutex;
     Hlr_Requests_HTTP11_Pipelined_Client *HTTP11_Pipelined_Client;
+    boost::asio::ip::udp::socket *socket_udp;
 //
 };
 
