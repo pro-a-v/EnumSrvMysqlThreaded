@@ -129,6 +129,7 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers(const bo
     else if (err != boost::asio::error::eof)
     {
       std::cout << "Error: " << err << "\n";
+      delete this;
     }
 }
 
@@ -155,11 +156,13 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
             {
                 handle_read_responce_headers(err, response_.size());
             }
+            else if ( requests.size() > 0 ) // Not all requests processed - read socket
+            {
+                boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
+            }
             else
             {
-                if ( requests.size() > 0 ) // Not all requests processed - read socket
-                    boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
-
+                delete this;
             }
 
 
@@ -170,6 +173,7 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
     else if (err != boost::asio::error::eof)
     {
       std::cout << "Error: " << err << "\n";
+      delete this;
     }
     
 }
