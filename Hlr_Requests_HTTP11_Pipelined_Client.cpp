@@ -140,6 +140,9 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
        ss << &response_;
        std::string data(ss.str());
        std::cout << data << std::endl;
+
+       rapidjson::Document doc;
+
     }
     else if (err != boost::asio::error::eof)
     {

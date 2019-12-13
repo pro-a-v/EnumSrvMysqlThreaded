@@ -10,6 +10,7 @@
 #include "RequestClass.hpp"
 
 #include <boost/lexical_cast.hpp>
+#include "include/rapidjson/document.h"
 
 
 class Hlr_Requests_HTTP11_Pipelined_Client
