@@ -177,24 +177,29 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
 void Hlr_Requests_HTTP11_Pipelined_Client::process_answer(std::string error_code, unsigned int uid, std::string mcc_mnc)
 {
  // error_code - Possible values : - Success - Unknown Subscriber - Absent Subscriber - System failure - Data missing - Unexpected Data Value - Illegal Equipment - Timeout
+    DnsMessage NS;
     if (error_code == std::string("Success"))
     {
-        DnsMessage NS;
+
         Request *req = get_req(uid);
 
         if (req != nullptr)
         {
         NS.parse(const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
-        //mccmnc mcc_data;
         boost::system::error_code ignored_ec;
-        //socket_udp->send_to(boost::asio::buffer(NS.Answer(mcc_data.mcc,mcc_data.mnc)), req->sender_endpoint_, 0, ignored_ec);
         socket_udp->send_to(boost::asio::buffer(NS.Answer(mcc_mnc.substr(0,3),mcc_mnc.substr(3,mcc_mnc.size()-3))), req->sender_endpoint_, 0, ignored_ec);
         delete req;
         }
     }
     else
     {
+        Request *req = get_req(uid);
 
+        if (req != nullptr)
+        {
+        boost::system::error_code ignored_ec;
+        socket_udp->send_to(boost::asio::buffer(NS.Answer(req->default_mccmnc.mcc,req->default_mccmnc.mnc)), req->sender_endpoint_, 0, ignored_ec);
+        delete req;
     }
 }
 
@@ -209,4 +214,5 @@ Request *Hlr_Requests_HTTP11_Pipelined_Client::get_req(unsigned int uid)
             return req;
         }
     }
+    return nullptr;
 }

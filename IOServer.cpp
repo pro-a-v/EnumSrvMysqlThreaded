@@ -148,11 +148,14 @@ void IOServer::RequestConsumerWorker()
 
             if (ProcessingType_Cache->Get_ProcessingType(req->phone_number) == std::string("hlr"))
             {
+                mccmnc default_mcc_data = dbd.get(NS.GetRequestedNumber(),  DefaultDataCache, DaughterDataCache);
+                req->default_mccmnc = default_mcc_data;
                 Hlr_Requests_Controller_ptr->add_Request(req);
                 continue;
             }
             else
             {
+
                if (ProcessDBRequest(dbd, &NS, req))
                 {
                     delete req;

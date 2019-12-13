@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <string.h>
 #include <g3log/g3log.hpp>
+#include "mccmnc.hpp"
 
 
 class Request
@@ -16,6 +17,7 @@ public:
     boost::posix_time::ptime income_utc_time;
     unsigned int uid; // Uniq Id
     std::string phone_number;
+    mccmnc default_mccmnc;
 };
 
 
