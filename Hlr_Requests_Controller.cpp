@@ -26,7 +26,7 @@ void Hlr_Requests_Controller::thread_worker()
             HTTP11_Pipelined_Client = new Hlr_Requests_HTTP11_Pipelined_Client(io_service, income_queue.size(), &income_queue, socket_udp);
 
        }
-       boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+       boost::this_thread::sleep_for(boost::chrono::milliseconds(30));
     }
 
 }

@@ -87,8 +87,7 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers(const bo
       unsigned int status_code;
       response_stream >> status_code;
 
-      if (status_code == 200)
-      {
+
           std::string status_message;
           std::getline(response_stream, status_message);
 
@@ -123,7 +122,7 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers(const bo
                 boost::asio::async_read(socket_, response_, boost::asio::transfer_at_least(content_length_value_int),  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
               }
           }
-      }
+
 
     }
     else if (err != boost::asio::error::eof)
@@ -142,7 +141,7 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
 
             ss << &response_;
             std::string data(ss.str());
-            std::cout << data << std::endl;
+
 
             rapidjson::Document doc;
             doc.Parse(data.c_str());
@@ -155,9 +154,11 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
             if (response_.size() > 100) // We have additional data in buffer
             {
                 handle_read_responce_headers(err, response_.size());
+                std::cout << " Have else data in buffer - process" << std::endl;
             }
             else if ( requests.size() > 0 ) // Not all requests processed - read socket
             {
+                std::cout << " Read other answer. To read - " << requests.size() << std::endl;
                 boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
             }
             else
