@@ -12,6 +12,7 @@
 #include <boost/lexical_cast.hpp>
 #include "include/rapidjson/document.h"
 #include "mccmnc.hpp"
+#include <g3log/g3log.hpp>
 
 
 class Hlr_Requests_HTTP11_Pipelined_Client
