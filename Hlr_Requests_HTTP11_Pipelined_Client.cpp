@@ -10,7 +10,7 @@ Hlr_Requests_HTTP11_Pipelined_Client::Hlr_Requests_HTTP11_Pipelined_Client(boost
     {
           requests.push_back(income_queue->pop());
     }
-
+    std::cout << "Thread: " << std::this_thread::get_id() << " Total requests - " << requests_count << std::endl;
     client_start_utc_time = boost::posix_time::microsec_clock::universal_time();
 
     create_http_requests();
@@ -151,14 +151,14 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
             std::string error_code  = srism_ack["errcode"].GetString();
             process_answer(error_code, uid, mcc_mnc);
 
-            if (response_.size() > 100) // We have additional data in buffer
+            if (response_.size() > 50) // We have additional data in buffer
             {
                 handle_read_responce_headers(err, response_.size());
                 std::cout << " Have else data in buffer - process" << std::endl;
             }
             else if ( requests.size() > 0 ) // Not all requests processed - read socket
             {
-                std::cout << " Read other answer. To read - " << requests.size() << std::endl;
+                std::cout << "Thread: " << std::this_thread::get_id() << " Read other answer. To read - " << requests.size() << std::endl;
                 boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
             }
             else
