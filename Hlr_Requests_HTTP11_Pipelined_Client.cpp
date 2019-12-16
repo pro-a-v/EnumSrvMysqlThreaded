@@ -183,11 +183,15 @@ void Hlr_Requests_HTTP11_Pipelined_Client::process_answer(std::string error_code
 {
  // error_code - Possible values : - Success - Unknown Subscriber - Absent Subscriber - System failure - Data missing - Unexpected Data Value - Illegal Equipment - Timeout
     DnsMessage NS;
+    Request *req = get_req(uid);
+    if (req == nullptr)
+    {
+        std::cout << "Not found request with uid: " << uid << "\n";
+    }
+
+
     if (error_code == std::string("Success"))
     {
-
-        Request *req = get_req(uid);
-
         if (req != nullptr)
         {
         NS.parse(const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
@@ -195,10 +199,11 @@ void Hlr_Requests_HTTP11_Pipelined_Client::process_answer(std::string error_code
         socket_udp->send_to(boost::asio::buffer(NS.Answer(mcc_mnc.substr(0,3),mcc_mnc.substr(3,mcc_mnc.size()-3))), req->sender_endpoint_, 0, ignored_ec);
         delete req;
         }
+
     }
     else
     {
-        Request *req = get_req(uid);
+
 
         if (req != nullptr)
         {
