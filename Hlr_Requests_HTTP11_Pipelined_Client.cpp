@@ -21,6 +21,11 @@ Hlr_Requests_HTTP11_Pipelined_Client::Hlr_Requests_HTTP11_Pipelined_Client(boost
     socket_.async_connect(tcp_endpoint,  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_connect, this,  boost::asio::placeholders::error));
 }
 
+Hlr_Requests_HTTP11_Pipelined_Client::~Hlr_Requests_HTTP11_Pipelined_Client()
+{
+    std::cerr << "Thread: " << std::this_thread::get_id() << " destroyed " << std::endl;
+}
+
 void Hlr_Requests_HTTP11_Pipelined_Client::create_http_requests()
 {
 
@@ -82,46 +87,46 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers(const bo
       std::istream response_stream(&response_);
       std::string http_version;
       response_stream >> http_version;
-      //std::cerr << "V : " << http_version << std::endl;
+      std::cerr << " Responce size = " << response_.size() << std::endl;
 
       unsigned int status_code;
       response_stream >> status_code;
 
 
-          std::string status_message;
-          std::getline(response_stream, status_message);
+      std::string status_message;
+      std::getline(response_stream, status_message);
 
 
-          std::string header;
-          std::string content_length = std::string("content-length:");
-          std::string content_length_value = "0";
-          std::size_t content_length_value_int = 0;
+      std::string header;
+      std::string content_length = std::string("content-length:");
+      std::string content_length_value = "0";
+      std::size_t content_length_value_int = 0;
 
-          //read the headers.
-          while (std::getline(response_stream, header) && header != "\r")
+      //read the headers.
+      while (std::getline(response_stream, header) && header != "\r")
+      {
+            boost::algorithm::to_lower(header);
+            std::size_t found = header.find(content_length);
+            if ( found != std::string::npos)
+            {
+                  content_length_value =  header.substr(found + content_length.size() ) ;
+                  boost::trim(content_length_value);
+                  content_length_value_int = boost::lexical_cast<std::size_t>(content_length_value);
+            }
+      }
+
+      if ( content_length_value_int > 0 )
+      {
+          // read body
+          if (content_length_value_int <= response_.size())
           {
-                boost::algorithm::to_lower(header);
-                std::size_t found = header.find(content_length);
-                if ( found != std::string::npos)
-                {
-                      content_length_value =  header.substr(found + content_length.size() ) ;
-                      boost::trim(content_length_value);
-                      content_length_value_int = boost::lexical_cast<std::size_t>(content_length_value);
-                }
+              handle_read_responce_body(err, content_length_value_int);
           }
-
-          if ( content_length_value_int > 0 )
+          else
           {
-              // read body
-              if (content_length_value_int <= response_.size())
-              {
-                  handle_read_responce_body(err, content_length_value_int);
-              }
-              else
-              {
-                boost::asio::async_read(socket_, response_, boost::asio::transfer_at_least(content_length_value_int),  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
-              }
+            boost::asio::async_read(socket_, response_, boost::asio::transfer_at_least(content_length_value_int),  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
           }
+      }
 
 
     }
@@ -129,6 +134,10 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers(const bo
     {
       std::cerr << "Error: " << err << "\n";
       delete this;
+    }
+    else if (err == boost::asio::error::eof)
+    {
+        std::cerr << "Error: connection closed " << err << "\n";
     }
 }
 

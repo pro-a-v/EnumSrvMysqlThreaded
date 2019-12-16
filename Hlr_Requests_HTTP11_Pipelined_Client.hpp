@@ -18,6 +18,7 @@ class Hlr_Requests_HTTP11_Pipelined_Client
 {
 public:
     Hlr_Requests_HTTP11_Pipelined_Client(boost::asio::io_service &io_service, size_t requests_count,  BlockingQueue<Request *> *income_queue, boost::asio::ip::udp::socket *socket_udp_);
+    ~Hlr_Requests_HTTP11_Pipelined_Client();
 private:
   void create_http_requests();
   void handle_connect(const boost::system::error_code& err);
