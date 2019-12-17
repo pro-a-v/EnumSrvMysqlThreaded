@@ -39,6 +39,8 @@ private:
 
   BlockingQueue<Request *> *income_queue_;
   std::vector<Request *> requests;
+  size_t requests_count_;
+  std::size_t body_bytes_size;
 
   boost::asio::ip::udp::socket *socket_udp;
 

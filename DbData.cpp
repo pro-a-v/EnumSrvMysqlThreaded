@@ -69,7 +69,7 @@ mccmnc DbData::get(std::string phone_, DbDataDefaultCache *DbDataDefaultCache, D
    }
 
    LOG(WARNING)  <<  "Failed: No data Found for " << phone << std::endl;
-   throw std::runtime_error("No data Found for ");
+   //throw std::runtime_error("No data Found for ");
 
 
 }

@@ -4,13 +4,14 @@
 using boost::asio::ip::tcp;
 
 Hlr_Requests_HTTP11_Pipelined_Client::Hlr_Requests_HTTP11_Pipelined_Client(boost::asio::io_service& io_service, size_t requests_count,  BlockingQueue<Request *> *income_queue, boost::asio::ip::udp::socket *socket_udp_):
-    resolver_(io_service), socket_(io_service), income_queue_(income_queue), socket_udp(socket_udp_)
+    resolver_(io_service), socket_(io_service), income_queue_(income_queue), socket_udp(socket_udp_), requests_count_(requests_count)
 {
     for (size_t i=0; i < requests_count; i++)
     {
           requests.push_back(income_queue->pop());
     }
-    LOG(WARNING) << "Thread: " << std::this_thread::get_id() << " Total requests - " << requests_count;
+
+    LOG(WARNING) << "Thread: " << this << " Total requests - " << requests_count_;
     client_start_utc_time = boost::posix_time::microsec_clock::universal_time();
 
     create_http_requests();
@@ -23,7 +24,7 @@ Hlr_Requests_HTTP11_Pipelined_Client::Hlr_Requests_HTTP11_Pipelined_Client(boost
 
 Hlr_Requests_HTTP11_Pipelined_Client::~Hlr_Requests_HTTP11_Pipelined_Client()
 {
-    LOG(WARNING) << "Thread: " << std::this_thread::get_id() << " destroyed ";
+    LOG(WARNING) << "Thread: " << this << " destroyed ";
 }
 
 void Hlr_Requests_HTTP11_Pipelined_Client::create_http_requests()
@@ -82,50 +83,48 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers(const bo
 {
     if (!err)
     {
-      // Write all of the data that has been read so far.
-        // Check that response is OK.
-      std::istream response_stream(&response_);
-      std::string http_version;
-      response_stream >> http_version;
       LOG(WARNING) << " Responce size = " << response_.size();
 
-      unsigned int status_code;
-      response_stream >> status_code;
 
-
-      std::string status_message;
-      std::getline(response_stream, status_message);
-
-
-      std::string header;
+      std::istream response_stream(&response_);
+      std::string header, headers;
       std::string content_length = std::string("content-length:");
       std::string content_length_value = "0";
-      std::size_t content_length_value_int = 0;
+      body_bytes_size = 0;
 
       //read the headers.
       while (std::getline(response_stream, header) && header != "\r")
       {
+            headers.append(header);
             boost::algorithm::to_lower(header);
             std::size_t found = header.find(content_length);
             if ( found != std::string::npos)
             {
                   content_length_value =  header.substr(found + content_length.size() ) ;
                   boost::trim(content_length_value);
-                  content_length_value_int = boost::lexical_cast<std::size_t>(content_length_value);
+                  body_bytes_size = boost::lexical_cast<std::size_t>(content_length_value);
             }
       }
 
-      if ( content_length_value_int > 0 )
+      if ( body_bytes_size > 0 )
       {
           // read body
-          if (content_length_value_int <= response_.size())
+          LOG(WARNING) << "body_bytes_size: " << body_bytes_size << " response_.size():" << response_.size();
+
+          if (body_bytes_size <= response_.size())
           {
-              handle_read_responce_body(err, content_length_value_int);
+
+              handle_read_responce_body(err, body_bytes_size);
           }
           else
           {
-            boost::asio::async_read(socket_, response_, boost::asio::transfer_at_least(content_length_value_int),  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
+            std::size_t need_to_read = body_bytes_size - response_.size();
+            boost::asio::async_read(socket_, response_, boost::asio::transfer_at_least(need_to_read),  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
           }
+      }
+      else
+      {
+          LOG(WARNING) << "No content length in responce " << headers;
       }
 
 
@@ -147,27 +146,30 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
     {
         std::ostringstream ss;
         try {
+            std::istream response_stream(&response_);
 
-            ss << &response_;
-            std::string data(ss.str());
 
+            char data[1024];  memset(data, 0x00, 1024);
+            response_stream.read(data, body_bytes_size);
+            //LOG(INFO) << data;
 
             rapidjson::Document doc;
-            doc.Parse(data.c_str());
+            doc.Parse(data);
             rapidjson::Value& srism_ack = doc["srism_ack"];
             std::string mcc_mnc = srism_ack["mccmnc"].GetString();
             unsigned int uid = srism_ack["request_id"].GetInt();
             std::string error_code  = srism_ack["errcode"].GetString();
             process_answer(error_code, uid, mcc_mnc);
 
-            if (response_.size() > 50) // We have additional data in buffer
+            if (response_.size() > 200) // We have additional data in buffer
             {
-                handle_read_responce_headers(err, response_.size());
                 LOG(WARNING) << " Have else data in buffer - process";
+                handle_read_responce_headers(err, response_.size());
+
             }
-            else if ( requests.size() > 0 ) // Not all requests processed - read socket
+            else if ( requests_count_ > 0 ) // Not all requests processed - read socket
             {
-                LOG(WARNING) << "Thread: " << std::this_thread::get_id() << " Read other answer. To read - " << requests.size();
+                LOG(WARNING) << "Thread: " << this << " Read other answer. To read - " << requests.size();
                 boost::asio::async_read_until(socket_, response_, "\r\n\r\n",  boost::bind(&Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_headers, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred ));
             }
             else
@@ -185,6 +187,11 @@ void Hlr_Requests_HTTP11_Pipelined_Client::handle_read_responce_body(const boost
       LOG(WARNING) << "Error: " << err;
       delete this;
     }
+    else if (err == boost::asio::error::eof)
+    {
+        LOG(WARNING) << "Error: Connection closed";
+        delete this;
+    }
     
 }
 
@@ -193,6 +200,8 @@ void Hlr_Requests_HTTP11_Pipelined_Client::process_answer(std::string error_code
  // error_code - Possible values : - Success - Unknown Subscriber - Absent Subscriber - System failure - Data missing - Unexpected Data Value - Illegal Equipment - Timeout
     DnsMessage NS;
     Request *req = get_req(uid);
+    requests_count_ -=1;
+
     if (req == nullptr)
     {
         LOG(WARNING) << "Not found request with uid: " << uid;
@@ -212,8 +221,6 @@ void Hlr_Requests_HTTP11_Pipelined_Client::process_answer(std::string error_code
     }
     else
     {
-
-
         if (req != nullptr)
         {
         NS.parse(const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
