@@ -63,13 +63,14 @@ mccmnc DbData::get(std::string phone_, DbDataDefaultCache *DbDataDefaultCache, D
     // ======================
 
 
-   if (mcc_data.mcc != 0)
+   if (mcc_data.mcc == 0)
    {
-       return mcc_data;
+       LOG(WARNING)  <<  "Failed: No data Found for " << phone << std::endl;
+       //throw std::runtime_error("No data Found for ");
+
    }
 
-   LOG(WARNING)  <<  "Failed: No data Found for " << phone << std::endl;
-   //throw std::runtime_error("No data Found for ");
+  return mcc_data;
 
 
 }

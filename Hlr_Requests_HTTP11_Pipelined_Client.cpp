@@ -225,7 +225,15 @@ void Hlr_Requests_HTTP11_Pipelined_Client::process_answer(std::string error_code
         {
         NS.parse(const_cast<char*>(req->raw_data.c_str()),req->raw_data.size());
         boost::system::error_code ignored_ec;
-        socket_udp->send_to(boost::asio::buffer(NS.Answer(req->default_mccmnc.mcc,req->default_mccmnc.mnc)), req->sender_endpoint_, 0, ignored_ec);
+        if (req->default_mccmnc.mcc != 0 )
+        {
+            socket_udp->send_to(boost::asio::buffer(NS.Answer(req->default_mccmnc.mcc,req->default_mccmnc.mnc)), req->sender_endpoint_, 0, ignored_ec);
+        }
+        else
+        {
+            socket_udp->send_to(boost::asio::buffer(NS.AnswerError()), req->sender_endpoint_, 0, ignored_ec);
+        }
+
         delete req;
         }
     }

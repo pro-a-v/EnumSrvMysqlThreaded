@@ -206,7 +206,14 @@ bool IOServer::ProcessDBRequest(DbData &dbd, DnsMessage *NS ,Request *req)
     {
             mccmnc mcc_data = dbd.get(NS->GetRequestedNumber(),  DefaultDataCache, DaughterDataCache);
             boost::system::error_code ignored_ec;
-            this->socket_.send_to(boost::asio::buffer(NS->Answer(mcc_data.mcc,mcc_data.mnc)), req->sender_endpoint_, 0, ignored_ec);
+            if (mcc_data.mcc != 0)
+            {
+                this->socket_.send_to(boost::asio::buffer(NS->Answer(mcc_data.mcc,mcc_data.mnc)), req->sender_endpoint_, 0, ignored_ec);
+            }
+            else
+            {
+                this->socket_.send_to(boost::asio::buffer(NS->AnswerError()), req->sender_endpoint_, 0, ignored_ec);
+            }
             return true;
     }
     catch(const std::exception& ex)
