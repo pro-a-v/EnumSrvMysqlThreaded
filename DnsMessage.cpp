@@ -102,8 +102,8 @@ std::string DnsMessage::AnswerError()
     char ch;
 
     try {
-        msg.push_back(header.ID[0]);
-        msg.push_back(header.ID[1]);
+      msg.push_back(header.ID[0]);
+      msg.push_back(header.ID[1]);
       header.QR = true;
       if (header.QR) ch = 128; else ch = 0;
       ch += header.OPCODE << 3;
@@ -127,13 +127,17 @@ std::string DnsMessage::AnswerError()
 
       ch += header.RCODE;
       msg.append(&ch, 1);
-      msg.append(uint16_buff(0), 2);
+      msg.append(uint16_buff(header.qdc), 2);
       msg.append(uint16_buff(0), 2);
       msg.append(uint16_buff(0), 2);
       msg.append(uint16_buff(0), 2);
 
-      /* write number of written items */
-
+      // write questions with 0x00
+      msg.append(req.data, strlen(req.data)+1);
+      // Request Type
+      msg.append(uint16_buff(req.Type), 2);
+      // Request Class
+      msg.append(uint16_buff(req.Class), 2);
 
     }
     catch(const std::exception& ex)
@@ -183,12 +187,17 @@ std::string DnsMessage::AnswerAccessDeny()
 
       ch += header.RCODE;
       msg.append(&ch, 1);
-      msg.append(uint16_buff(0), 2);
+      msg.append(uint16_buff(header.qdc), 2);
       msg.append(uint16_buff(0), 2);
       msg.append(uint16_buff(0), 2);
       msg.append(uint16_buff(0), 2);
 
-      /* write number of written items */
+      // write questions with 0x00
+      msg.append(req.data, strlen(req.data)+1);
+      // Request Type
+      msg.append(uint16_buff(req.Type), 2);
+      // Request Class
+      msg.append(uint16_buff(req.Class), 2);
 
 
     }
